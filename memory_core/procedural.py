@@ -1,4 +1,8 @@
-"""Procedural memory layer managing outcomes, promotion, deprecation, and episodic decay."""
+"""Procedural memory layer managing outcomes, promotion, deprecation, and episodic decay.
+
+Implements Bayesian Laplace-smoothed confidence scoring (successes + 1) / (total + 2)
+for procedure promotion and deprecation criteria.
+"""
 
 from __future__ import annotations
 
