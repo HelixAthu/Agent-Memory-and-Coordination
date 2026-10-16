@@ -158,5 +158,25 @@ This log tracks execution output, test results, and task completion across the b
     and marks session CLOSED.
 - **Status:** DONE
 
+---
+
+## T7. Procedural Memory and Decay
+
+- **Commits:**
+  - `feat(procedural): outcomes, promotion, deprecation and decay`
+  - `test(procedural): promotion and decay goldens G6 G10`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_procedural.py
+  ============================== 3 passed in 0.52s ===============================
+  ```
+- **Assertions:**
+  - `should_deprecate` truth table asserted: (0, 5) and (1, 4) deprecate; (3, 2) and (0, 4) do not.
+  - G6: `decay()` archives exactly `ep-r2` (importance 0.1 < 0.2 and age 135 days > 90); archived episodes never appear in recall.
+  - G10: `proc-vpn-token-reset` is initially CANDIDATE with 1 success from 1 user (Priya); after recording success in a Rahul session, `promote_procedures()` promotes it to ACTIVE and returns `['proc-vpn-token-reset']`; second call returns `[]`.
+  - CANDIDATE procedures are excluded from default recall but included in `find_procedures(include_candidates=True)`.
+- **Status:** DONE
+
+
 
 
