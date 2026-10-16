@@ -1,0 +1,323 @@
+{
+  "agents": [
+    {
+      "id": "agent-triage",
+      "name": "Triage Agent",
+      "role": "triage",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "agent-billing",
+      "name": "Billing Specialist",
+      "role": "specialist",
+      "status": "AVAILABLE"
+    },
+    {
+      "id": "agent-tech",
+      "name": "Technical Specialist",
+      "role": "specialist",
+      "status": "AVAILABLE"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-priya",
+      "name": "Priya Nair"
+    },
+    {
+      "id": "user-rahul",
+      "name": "Rahul Mehta"
+    }
+  ],
+  "entities": [
+    {
+      "id": "topic-general",
+      "name": "General",
+      "type": "topic",
+      "keywords": []
+    },
+    {
+      "id": "topic-billing",
+      "name": "Billing",
+      "type": "topic",
+      "keywords": ["bill", "charg", "invoic", "payment"]
+    },
+    {
+      "id": "topic-refunds",
+      "name": "Refunds",
+      "type": "topic",
+      "keywords": ["refund"]
+    },
+    {
+      "id": "topic-vpn",
+      "name": "VPN",
+      "type": "topic",
+      "keywords": ["vpn"]
+    },
+    {
+      "id": "topic-login",
+      "name": "Login",
+      "type": "topic",
+      "keywords": ["login", "token"]
+    },
+    {
+      "id": "product-vpn-client",
+      "name": "VPN Client",
+      "type": "product",
+      "keywords": ["client"]
+    },
+    {
+      "id": "product-pro-plan",
+      "name": "Pro Plan",
+      "type": "product",
+      "keywords": ["pro"]
+    },
+    {
+      "id": "invoice-inv-1042",
+      "name": "Invoice INV-1042",
+      "type": "invoice",
+      "keywords": ["1042"]
+    }
+  ],
+  "expert_in": [
+    { "agent_id": "agent-triage", "topic_id": "topic-general" },
+    { "agent_id": "agent-billing", "topic_id": "topic-billing" },
+    { "agent_id": "agent-billing", "topic_id": "topic-refunds" },
+    { "agent_id": "agent-tech", "topic_id": "topic-vpn" },
+    { "agent_id": "agent-tech", "topic_id": "topic-login" }
+  ],
+  "sessions": [
+    {
+      "id": "sess-p1",
+      "user_id": "user-priya",
+      "status": "CLOSED",
+      "started_at": 1786525200,
+      "ended_at": 1786526400,
+      "outcome": "resolved",
+      "current_agent": "agent-billing",
+      "msg_count": 4
+    },
+    {
+      "id": "sess-p2",
+      "user_id": "user-priya",
+      "status": "CLOSED",
+      "started_at": 1788444000,
+      "ended_at": 1788444900,
+      "outcome": "resolved",
+      "current_agent": "agent-tech",
+      "msg_count": 4
+    },
+    {
+      "id": "sess-p3",
+      "user_id": "user-priya",
+      "status": "CLOSED",
+      "started_at": 1790593200,
+      "ended_at": 1790593800,
+      "outcome": "resolved",
+      "current_agent": "agent-billing",
+      "msg_count": 4
+    },
+    {
+      "id": "sess-r1",
+      "user_id": "user-rahul",
+      "status": "CLOSED",
+      "started_at": 1789920000,
+      "ended_at": 1789920720,
+      "outcome": "resolved",
+      "current_agent": "agent-tech",
+      "msg_count": 4
+    },
+    {
+      "id": "sess-r2",
+      "user_id": "user-rahul",
+      "status": "CLOSED",
+      "started_at": 1780394400,
+      "ended_at": 1780394700,
+      "outcome": "resolved",
+      "current_agent": "agent-triage",
+      "msg_count": 4
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg-sess-p1-1",
+      "session_id": "sess-p1",
+      "seq": 1,
+      "role": "user",
+      "agent_id": "",
+      "text": "I was charged twice for invoice INV-1042.",
+      "ts": 1786525260
+    },
+    {
+      "id": "msg-sess-p1-2",
+      "session_id": "sess-p1",
+      "seq": 2,
+      "role": "agent",
+      "agent_id": "agent-triage",
+      "text": "Sorry about that, I am bringing in Billing.",
+      "ts": 1786525320
+    },
+    {
+      "id": "msg-sess-p1-3",
+      "session_id": "sess-p1",
+      "seq": 3,
+      "role": "agent",
+      "agent_id": "agent-billing",
+      "text": "I see the duplicate charge and issued a refund for the extra payment.",
+      "ts": 1786525380
+    },
+    {
+      "id": "msg-sess-p1-4",
+      "session_id": "sess-p1",
+      "seq": 4,
+      "role": "user",
+      "agent_id": "",
+      "text": "Thanks, that fixed it.",
+      "ts": 1786525440
+    },
+    {
+      "id": "msg-sess-p2-1",
+      "session_id": "sess-p2",
+      "seq": 1,
+      "role": "user",
+      "agent_id": "",
+      "text": "My VPN client will not let me log in.",
+      "ts": 1788444060
+    },
+    {
+      "id": "msg-sess-p2-2",
+      "session_id": "sess-p2",
+      "seq": 2,
+      "role": "agent",
+      "agent_id": "agent-triage",
+      "text": "Let me bring in Technical Support.",
+      "ts": 1788444120
+    },
+    {
+      "id": "msg-sess-p2-3",
+      "session_id": "sess-p2",
+      "seq": 3,
+      "role": "agent",
+      "agent_id": "agent-tech",
+      "text": "Your VPN token had expired, I reset it.",
+      "ts": 1788444180
+    },
+    {
+      "id": "msg-sess-p2-4",
+      "session_id": "sess-p2",
+      "seq": 4,
+      "role": "user",
+      "agent_id": "",
+      "text": "Thanks, that fixed it.",
+      "ts": 1788444240
+    },
+    {
+      "id": "msg-sess-p3-1",
+      "session_id": "sess-p3",
+      "seq": 1,
+      "role": "user",
+      "agent_id": "",
+      "text": "Why was there a late fee on invoice INV-1042?",
+      "ts": 1790593260
+    },
+    {
+      "id": "msg-sess-p3-2",
+      "session_id": "sess-p3",
+      "seq": 2,
+      "role": "agent",
+      "agent_id": "agent-triage",
+      "text": "I will ask Billing to explain.",
+      "ts": 1790593320
+    },
+    {
+      "id": "msg-sess-p3-3",
+      "session_id": "sess-p3",
+      "seq": 3,
+      "role": "agent",
+      "agent_id": "agent-billing",
+      "text": "The late fee follows the payment policy, I explained the details.",
+      "ts": 1790593380
+    },
+    {
+      "id": "msg-sess-p3-4",
+      "session_id": "sess-p3",
+      "seq": 4,
+      "role": "user",
+      "agent_id": "",
+      "text": "Thanks, that fixed it.",
+      "ts": 1790593440
+    },
+    {
+      "id": "msg-sess-r1-1",
+      "session_id": "sess-r1",
+      "seq": 1,
+      "role": "user",
+      "agent_id": "",
+      "text": "My VPN token expired.",
+      "ts": 1789920060
+    },
+    {
+      "id": "msg-sess-r1-2",
+      "session_id": "sess-r1",
+      "seq": 2,
+      "role": "agent",
+      "agent_id": "agent-triage",
+      "text": "I will ask Technical Support.",
+      "ts": 1789920120
+    },
+    {
+      "id": "msg-sess-r1-3",
+      "session_id": "sess-r1",
+      "seq": 3,
+      "role": "agent",
+      "agent_id": "agent-tech",
+      "text": "I reset your VPN token.",
+      "ts": 1789920180
+    },
+    {
+      "id": "msg-sess-r1-4",
+      "session_id": "sess-r1",
+      "seq": 4,
+      "role": "user",
+      "agent_id": "",
+      "text": "Thanks, that fixed it.",
+      "ts": 1789920240
+    },
+    {
+      "id": "msg-sess-r2-1",
+      "session_id": "sess-r2",
+      "seq": 1,
+      "role": "user",
+      "agent_id": "",
+      "text": "How do I get invoice PDFs formatted?",
+      "ts": 1780394460
+    },
+    {
+      "id": "msg-sess-r2-2",
+      "session_id": "sess-r2",
+      "seq": 2,
+      "role": "agent",
+      "agent_id": "agent-triage",
+      "text": "I can help with that directly.",
+      "ts": 1780394520
+    },
+    {
+      "id": "msg-sess-r2-3",
+      "session_id": "sess-r2",
+      "seq": 3,
+      "role": "agent",
+      "agent_id": "agent-triage",
+      "text": "Invoices can be exported as PDF from the billing page.",
+      "ts": 1780394580
+    },
+    {
+      "id": "msg-sess-r2-4",
+      "session_id": "sess-r2",
+      "seq": 4,
+      "role": "user",
+      "agent_id": "",
+      "text": "Thanks, that fixed it.",
+      "ts": 1780394640
+    }
+  ]
+}

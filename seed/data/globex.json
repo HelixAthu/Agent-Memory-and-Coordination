@@ -1,0 +1,77 @@
+{
+  "agents": [
+    {
+      "id": "agent-g-triage",
+      "name": "Triage Agent",
+      "role": "triage",
+      "status": "AVAILABLE"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-dana",
+      "name": "Dana Cole"
+    }
+  ],
+  "entities": [
+    {
+      "id": "topic-billing",
+      "name": "Billing",
+      "type": "topic",
+      "keywords": ["bill", "charg", "invoic", "payment"]
+    }
+  ],
+  "expert_in": [
+    { "agent_id": "agent-g-triage", "topic_id": "topic-billing" }
+  ],
+  "sessions": [
+    {
+      "id": "sess-d1",
+      "user_id": "user-dana",
+      "status": "CLOSED",
+      "started_at": 1789030800,
+      "ended_at": 1789032000,
+      "outcome": "resolved",
+      "current_agent": "agent-g-triage",
+      "msg_count": 4
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg-sess-d1-1",
+      "session_id": "sess-d1",
+      "seq": 1,
+      "role": "user",
+      "agent_id": "",
+      "text": "I was charged twice.",
+      "ts": 1789030860
+    },
+    {
+      "id": "msg-sess-d1-2",
+      "session_id": "sess-d1",
+      "seq": 2,
+      "role": "agent",
+      "agent_id": "agent-g-triage",
+      "text": "Sorry, let me look.",
+      "ts": 1789030920
+    },
+    {
+      "id": "msg-sess-d1-3",
+      "session_id": "sess-d1",
+      "seq": 3,
+      "role": "agent",
+      "agent_id": "agent-g-triage",
+      "text": "I refunded the duplicate charge by phone callback.",
+      "ts": 1789030980
+    },
+    {
+      "id": "msg-sess-d1-4",
+      "session_id": "sess-d1",
+      "seq": 4,
+      "role": "user",
+      "agent_id": "",
+      "text": "Thanks, that fixed it.",
+      "ts": 1789031040
+    }
+  ]
+}
