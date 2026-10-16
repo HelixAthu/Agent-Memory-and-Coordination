@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from backend.llm.base import LLMSession, LLMTurn, ToolCall, ToolResult, ToolSpec
+from backend.llm.base import LLMError, LLMSession, LLMTurn, ToolCall, ToolResult, ToolSpec
 
 if TYPE_CHECKING:
     pass
 
 __all__ = [
+    "LLMError",
     "LLMSession",
     "LLMTurn",
     "ToolCall",

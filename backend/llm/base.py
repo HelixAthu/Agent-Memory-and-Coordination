@@ -42,6 +42,12 @@ class LLMTurn:
     tool_calls: list[ToolCall] = field(default_factory=list)
 
 
+class LLMError(Exception):
+    """Exception raised for unrecoverable LLM API errors."""
+
+    pass
+
+
 class LLMSession(Protocol):
     """Protocol implemented by LLM provider session adapters."""
 
