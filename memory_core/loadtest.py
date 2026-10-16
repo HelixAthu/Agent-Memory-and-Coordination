@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Callable
 import uuid
+from typing import Any, Callable
 
 from memory_core.coordination import claim_next, claim_task, create_task, get_state, set_state
 from memory_core.db import get_tenant_db
