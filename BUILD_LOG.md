@@ -111,3 +111,25 @@ This log tracks execution output, test results, and task completion across the b
 - **Tag:** `v0.1-core`
 - **Status:** DONE
 
+---
+
+## T5. History and Semantic Memory
+
+- **Commits:**
+  - `feat(history): atomic message append and history chain`
+  - `feat(semantic): remember_fact with supersession and reinforcement`
+  - `test(semantic): supersession and concurrency tests G4 G5 G14`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_history.py tests/test_semantic.py
+  ============================== 5 passed in 1.50s ===============================
+  ```
+- **Assertions:**
+  - G4: superseding city and prefers_channel creates new ACTIVE facts and sets old facts to SUPERSEDED with valid_to.
+  - G5: reinforcing identical active fact (plan=Pro) increments confidence to 0.95 without creating a new Fact node.
+  - G14: 3 concurrent message appends on a session with 4 messages assign sequence numbers {5, 6, 7} with 6 NEXT edges.
+  - Concurrency: 10 concurrent remember_fact calls for a new predicate leave exactly 1 ACTIVE fact for the user.
+  - InvalidInputError raised when attempting to set an unregistered predicate.
+- **Status:** DONE
+
+
