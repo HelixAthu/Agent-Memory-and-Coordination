@@ -1,57 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  * { box-sizing: border-box; }
-  body { margin: 0; min-width: 320px; background: #090b10; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-  button, textarea, select { font: inherit; }
+  :root {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+    --card: 224 71% 7%;
+    --card-foreground: 213 31% 91%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 216 34% 17%;
+    --radius: 0.5rem;
+  }
 }
 
-@layer components {
-  .panel { @apply rounded-lg border border-slate-800/90 bg-[#0d1119]; }
-  .brand-mark { @apply flex h-8 w-8 items-center justify-center rounded-md border border-blue-400/30 bg-blue-500/10 text-blue-400; }
-  .status-dot { @apply inline-block h-1.5 w-1.5 rounded-full bg-emerald-400; }
-  .eyebrow { @apply font-mono text-[10px] uppercase tracking-[.16em] text-blue-400; }
-  .icon-button { @apply rounded-md border border-slate-800 p-2 text-slate-500 transition hover:border-slate-700 hover:text-slate-300; }
-  .field-label { @apply block text-[11px] font-medium uppercase tracking-wider text-slate-500; }
-  .input { @apply block w-full rounded-md border border-slate-700/90 bg-slate-950/70 px-3 py-2.5 text-sm text-slate-200 outline-none transition placeholder:text-slate-700 focus:border-blue-500/70 focus:ring-1 focus:ring-blue-500/20; }
-  .primary-button { @apply flex h-10 items-center justify-center gap-2 rounded-md bg-blue-600 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-80; }
-  .toolbar-button { @apply flex h-7 items-center justify-center rounded border border-slate-800 px-1.5 text-slate-500 transition hover:border-slate-700 hover:text-slate-200; }
-  .toggle-button { @apply flex h-7 items-center gap-1.5 rounded border border-transparent px-2 text-[10px] text-slate-600 transition hover:text-slate-300; }
-  .toggle-button.active { @apply border-slate-800 bg-slate-900/70 text-slate-400; }
-  .legend-dot { @apply h-1.5 w-1.5 rounded-full; }
-  .legend-line { @apply h-px w-3; }
-  .log-row { @apply flex items-center gap-2 border-b border-slate-800/60 py-2 last:border-0; }
-}
-
-  .log-dot { width: 5px; height: 5px; flex: 0 0 auto; border-radius: 50%; }
-  .log-tone-blue { background: #60a5fa; }
-  .log-tone-slate { background: #64748b; }
-  .log-tone-amber { background: #fbbf24; }
-  .log-tone-emerald { background: #34d399; }
-
-  .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.graph-grid { background-image: linear-gradient(rgba(71,85,105,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(71,85,105,.09) 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); }
-.edge { stroke: #334155; stroke-width: 1.5; stroke-dasharray: 4 5; opacity: .8; }
-.handoff-edge { stroke: #d97706; opacity: .9; }
-.graph-node { position: absolute; transform: translate(-50%, -50%); display: flex; min-width: 112px; align-items: center; gap: 8px; border: 1px solid #334155; border-radius: 6px; background: #111722; padding: 8px 10px; color: #cbd5e1; font-size: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.25); white-space: nowrap; }
-.graph-node small { margin-left: auto; color: #34d399; font: 9px "JetBrains Mono", monospace; }
-.node-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #64748b; }
-.node-core { min-width: 138px; border-color: #2563eb; background: #111a2d; padding: 11px 13px; color: #f1f5f9; box-shadow: 0 0 0 4px rgba(37,99,235,.08), 0 12px 30px rgba(0,0,0,.35); }
-.node-core .node-dot { background: #60a5fa; box-shadow: 0 0 8px rgba(96,165,250,.8); }
-.node-agent { border-color: #475569; }
-.node-emerald .node-dot { background: #34d399; box-shadow: 0 0 7px rgba(52,211,153,.55); }
-.node-blue .node-dot { background: #60a5fa; }
-.node-violet .node-dot { background: #a78bfa; }
-.node-incident { border-color: rgba(244,63,94,.55); background: #1b121b; }
-.node-incident .node-dot { background: #fb7185; }
-.node-memory { min-width: 100px; border-style: dashed; color: #94a3b8; }
-.node-memory .node-dot { width: 5px; height: 5px; background: #60a5fa; }
-.pulse-line { height: 1px; width: 18px; background: linear-gradient(90deg, transparent, #34d399); }
-@media (max-width: 700px) {
-  .graph-stage { min-height: 560px; }
-  .graph-node { transform: translate(-50%, -50%) scale(.9); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
