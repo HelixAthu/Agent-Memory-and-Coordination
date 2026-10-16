@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memory-fabric"
+version = "0.1.0"
+description = "Shared memory and coordination layer for multiple AI agents built on FalkorDB"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "HelixAthu", email = "hathukoralla@gmail.com" }]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]

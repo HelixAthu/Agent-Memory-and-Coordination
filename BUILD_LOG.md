@@ -11,5 +11,10 @@ This log tracks execution output, test results, and task completion across the b
   - `docs: add problem statement and memory graph schema`
   - `chore: add docker-compose for pinned FalkorDB`
   - `chore: scaffold python project, requirements and Makefile`
-- **Acceptance Output:** Pending
-- **Status:** IN_PROGRESS
+- **Acceptance Output:**
+  ```bash
+  $ python -c "from falkordb import FalkorDB; print(FalkorDB().select_graph('t').query('RETURN 1').result_set)"
+  [[1]]
+  ```
+- **Pinned Docker Image Tag:** `falkordb/falkordb:v4.22.1`
+- **Status:** DONE
