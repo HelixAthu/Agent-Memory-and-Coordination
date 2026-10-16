@@ -1,0 +1,13 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:v4.22.1
+    container_name: memory-fabric-falkordb
+    ports:
+      - "6379:6379"
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
