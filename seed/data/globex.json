@@ -73,5 +73,47 @@
       "text": "Thanks, that fixed it.",
       "ts": 1789031040
     }
-  ]
+  ],
+  "episodes": [
+    {
+      "id": "ep-d1",
+      "session_id": "sess-d1",
+      "summary": "Dana was charged twice, a duplicate charge; refunded by phone callback; resolved.",
+      "outcome": "resolved",
+      "importance": 0.7,
+      "ts": 1789032000,
+      "status": "ACTIVE",
+      "mentions": ["topic-billing"],
+      "involved": ["agent-g-triage"]
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact-d-channel",
+      "user_id": "user-dana",
+      "predicate": "prefers_channel",
+      "object": "phone",
+      "confidence": 0.8,
+      "status": "ACTIVE",
+      "valid_from": 1788998400,
+      "valid_to": null,
+      "derived_from": "sess-d1"
+    }
+  ],
+  "supersedes": [],
+  "procedures": [
+    {
+      "id": "proc-g-dup-refund",
+      "name": "Phone refund",
+      "trigger": "duplicate charge refund phone callback",
+      "steps": [
+        "Call the customer",
+        "Refund the duplicate"
+      ],
+      "status": "ACTIVE",
+      "origin": "policy"
+    }
+  ],
+  "applied": [],
+  "tasks": []
 }
