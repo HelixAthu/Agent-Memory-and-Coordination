@@ -155,8 +155,7 @@ class MockAgentRunner:
         """Execute continuity scenario with triage and billing specialist handoff."""
         db = await get_tenant_db(scenario.tenant_id)
         await db.run_rw(
-            "MATCH (e:Episode {id: 'ep-' + $sid}) DETACH DELETE e",
-            {"sid": scenario.session_id},
+            "MATCH (e:Episode) WHERE e.id STARTS WITH 'ep-sess-' DETACH DELETE e"
         )
         await db.run_rw(
             "MATCH (u:User {id: $uid})-[:HAS_FACT]->(f:Fact) WHERE NOT (f.id IN $seed_ids) DETACH DELETE f",
@@ -606,6 +605,415 @@ class MockAgentRunner:
                 "promoted": promoted,
             },
         )
+
+    async def run_turn(
+        self,
+        ctx: MemoryContext,
+        text: str,
+        bus: EventBus,
+    ) -> Any:
+        """Execute a single agent turn in mock mode."""
+        from backend.crew import AgentTurnResult
+
+        if ctx.agent_id == "agent-triage":
+            if "INV-1042" in text or "charge" in text or "continuity" in ctx.session_id:
+                env_prof = await self._call_and_emit(ctx, "get_user_profile", {}, bus)
+                facts = env_prof.get("data", {}).get("facts", [])
+                plan = next((f["object"] for f in facts if f["predicate"] == "plan"), "Pro")
+                channel = next((f["object"] for f in facts if f["predicate"] == "prefers_channel"), "email")
+                first_name = "Priya"
+
+                env_recall = await self._call_and_emit(
+                    ctx, "recall_memory", {"query": text, "k": 3}, bus
+                )
+                data_rec = env_recall.get("data", {})
+                episodes = data_rec.get("episodes", [])
+                await bus.emit(
+                    "recall_result",
+                    {
+                        "episodes": [
+                            {"id": e["id"], "score": e["score"], "components": e.get("components", {})}
+                            for e in episodes
+                        ],
+                        "fact_ids": [f["id"] for f in data_rec.get("facts", [])],
+                        "procedure_ids": [p["id"] for p in data_rec.get("procedures", [])],
+                    },
+                )
+
+                await self._call_and_emit(
+                    ctx, "find_procedure", {"situation": text}, bus
+                )
+
+                top_ep = episodes[0] if episodes else {"id": "ep-p1", "summary": "", "ts": 1786526400}
+                ep_date = datetime.fromtimestamp(1786526400, timezone.utc).strftime("%Y-%m-%d")
+                triage_text = (
+                    f"Welcome back, {first_name}. Last time ({ep_date}) {top_ep.get('summary')} "
+                    f"I see you prefer {channel} and are on the {plan} plan. I'm bringing in our Billing specialist."
+                )
+                msg2 = await append_message(
+                    ctx.tenant_id,
+                    ctx.session_id,
+                    role="agent",
+                    text=triage_text,
+                    agent_id="agent-triage",
+                )
+                await bus.emit(
+                    "message",
+                    {"role": "agent", "agent_id": "agent-triage", "text": triage_text, "seq": msg2["seq"]},
+                )
+
+                env_route = await self._call_and_emit(
+                    ctx, "route_to_specialist", {"topic_id": "topic-billing"}, bus
+                )
+                candidates = env_route.get("data", {}).get("candidates", [])
+                target_agent = candidates[0]["id"] if candidates else "agent-billing"
+
+                env_ho = await self._call_and_emit(
+                    ctx,
+                    "create_handoff",
+                    {"to_agent_id": target_agent, "reason": "duplicate charge on invoice INV-1042"},
+                    bus,
+                )
+                ho_data = env_ho.get("data", {})
+                handoff_id = ho_data["handoff_id"]
+                carries = ho_data.get("carries", {})
+                await bus.emit(
+                    "handoff",
+                    {
+                        "handoff_id": handoff_id,
+                        "status": "PENDING",
+                        "from_agent": "agent-triage",
+                        "to_agent": target_agent,
+                        "carries": carries,
+                    },
+                )
+                return AgentTurnResult(messages=[msg2], handoff_created=handoff_id)
+
+            elif "Pune" in text or "chat" in text or "move" in ctx.session_id or "fact" in ctx.session_id:
+                await self._call_and_emit(ctx, "get_user_profile", {}, bus)
+                env_f1 = await self._call_and_emit(
+                    ctx,
+                    "remember_fact",
+                    {"predicate": "city", "object": "Pune"},
+                    bus,
+                )
+                d1 = env_f1.get("data", {})
+                await bus.emit(
+                    "fact_update",
+                    {
+                        "action": d1.get("action", "superseded"),
+                        "fact_id": d1.get("fact_id"),
+                        "old_fact_id": d1.get("old_fact_id"),
+                        "predicate": "city",
+                        "object": "Pune",
+                    },
+                )
+
+                env_f2 = await self._call_and_emit(
+                    ctx,
+                    "remember_fact",
+                    {"predicate": "prefers_channel", "object": "chat"},
+                    bus,
+                )
+                d2 = env_f2.get("data", {})
+                await bus.emit(
+                    "fact_update",
+                    {
+                        "action": d2.get("action", "superseded"),
+                        "fact_id": d2.get("fact_id"),
+                        "old_fact_id": d2.get("old_fact_id"),
+                        "predicate": "prefers_channel",
+                        "object": "chat",
+                    },
+                )
+
+                reply_text = "Thanks Priya, I updated your city to Pune and your preferred channel to chat."
+                msg = await append_message(
+                    ctx.tenant_id,
+                    ctx.session_id,
+                    role="agent",
+                    text=reply_text,
+                    agent_id="agent-triage",
+                )
+                await bus.emit(
+                    "message",
+                    {"role": "agent", "agent_id": "agent-triage", "text": reply_text, "seq": msg["seq"]},
+                )
+
+                env_close = await self._call_and_emit(ctx, "close_session", {"outcome": "resolved"}, bus)
+                close_data = env_close.get("data", {})
+                await bus.emit(
+                    "session_closed",
+                    {
+                        "episode_id": close_data.get("episode_id"),
+                        "importance": close_data.get("importance"),
+                        "facts_changed": close_data.get("facts_changed", []),
+                        "promoted": close_data.get("promoted", []),
+                    },
+                )
+                return AgentTurnResult(messages=[msg], handoff_created=None)
+
+            else:
+                await self._call_and_emit(ctx, "get_user_profile", {}, bus)
+                await self._call_and_emit(
+                    ctx, "find_procedure", {"situation": text}, bus
+                )
+                triage_text = "I will bring in Technical Support."
+                msg2 = await append_message(
+                    ctx.tenant_id,
+                    ctx.session_id,
+                    role="agent",
+                    text=triage_text,
+                    agent_id="agent-triage",
+                )
+                await bus.emit(
+                    "message",
+                    {"role": "agent", "agent_id": "agent-triage", "text": triage_text, "seq": msg2["seq"]},
+                )
+
+                env_route = await self._call_and_emit(
+                    ctx, "route_to_specialist", {"topic_id": "topic-vpn"}, bus
+                )
+                candidates = env_route.get("data", {}).get("candidates", [])
+                target_agent = candidates[0]["id"] if candidates else "agent-tech"
+
+                env_ho = await self._call_and_emit(
+                    ctx,
+                    "create_handoff",
+                    {"to_agent_id": target_agent, "reason": "vpn token expired"},
+                    bus,
+                )
+                ho_data = env_ho.get("data", {})
+                handoff_id = ho_data["handoff_id"]
+                carries = ho_data.get("carries", {})
+                await bus.emit(
+                    "handoff",
+                    {
+                        "handoff_id": handoff_id,
+                        "status": "PENDING",
+                        "from_agent": "agent-triage",
+                        "to_agent": target_agent,
+                        "carries": carries,
+                    },
+                )
+                return AgentTurnResult(messages=[msg2], handoff_created=handoff_id)
+
+        elif ctx.agent_id == "agent-billing":
+            env_pend = await self._call_and_emit(ctx, "get_pending_handoffs", {}, bus)
+            pending_list = env_pend.get("data", {}).get("handoffs", [])
+            if not pending_list:
+                reply_text = "You are welcome! Let me know if you need anything else."
+                msg = await append_message(
+                    ctx.tenant_id,
+                    ctx.session_id,
+                    role="agent",
+                    text=reply_text,
+                    agent_id=ctx.agent_id,
+                )
+                await bus.emit(
+                    "message",
+                    {"role": "agent", "agent_id": ctx.agent_id, "text": reply_text, "seq": msg["seq"]},
+                )
+                return AgentTurnResult(messages=[msg], handoff_created=None)
+
+            handoff_id = pending_list[0]["id"]
+            env_acc = await self._call_and_emit(ctx, "accept_handoff", {"handoff_id": handoff_id}, bus)
+            carries = env_acc.get("data", {}).get("carries", {})
+            await bus.emit(
+                "handoff",
+                {
+                    "handoff_id": handoff_id,
+                    "status": "ACCEPTED",
+                    "from_agent": "agent-triage",
+                    "to_agent": ctx.agent_id,
+                    "carries": carries,
+                },
+            )
+
+            env_p = await self._call_and_emit(
+                ctx,
+                "find_procedure",
+                {"situation": "duplicate charge on invoice INV-1042"},
+                bus,
+            )
+            procedures = env_p.get("data", {}).get("procedures", [])
+            proc_id = procedures[0]["id"] if procedures else "proc-duplicate-charge"
+            proc_name = procedures[0]["name"] if procedures else "Duplicate Charge Resolution"
+
+            specialist_text = (
+                f"I have the full history from Triage. Following the '{proc_name}' procedure, "
+                "I verified both charges and issued a refund for the duplicate. "
+                "You will get confirmation by email."
+            )
+            msg3 = await append_message(
+                ctx.tenant_id,
+                ctx.session_id,
+                role="agent",
+                text=specialist_text,
+                agent_id=ctx.agent_id,
+            )
+            await bus.emit(
+                "message",
+                {"role": "agent", "agent_id": ctx.agent_id, "text": specialist_text, "seq": msg3["seq"]},
+            )
+
+            await self._call_and_emit(
+                ctx,
+                "record_procedure_outcome",
+                {"procedure_id": proc_id, "outcome": "success"},
+                bus,
+            )
+            await bus.emit(
+                "procedure_event",
+                {"procedure_id": proc_id, "kind": "outcome", "detail": "success"},
+            )
+
+            await self._call_and_emit(
+                ctx,
+                "complete_handoff",
+                {
+                    "handoff_id": handoff_id,
+                    "outcome": "resolved",
+                    "summary": "Duplicate charge refunded",
+                },
+                bus,
+            )
+            await bus.emit(
+                "handoff",
+                {
+                    "handoff_id": handoff_id,
+                    "status": "COMPLETED",
+                    "from_agent": "agent-triage",
+                    "to_agent": ctx.agent_id,
+                    "carries": carries,
+                },
+            )
+
+            env_close = await self._call_and_emit(
+                ctx,
+                "close_session",
+                {"outcome": "resolved"},
+                bus,
+            )
+            close_data = env_close.get("data", {})
+            await bus.emit(
+                "session_closed",
+                {
+                    "episode_id": close_data.get("episode_id"),
+                    "importance": close_data.get("importance"),
+                    "facts_changed": close_data.get("facts_changed", []),
+                    "promoted": close_data.get("promoted", []),
+                },
+            )
+            return AgentTurnResult(messages=[msg3], handoff_created=None)
+
+        elif ctx.agent_id == "agent-tech":
+            env_pend = await self._call_and_emit(ctx, "get_pending_handoffs", {}, bus)
+            pending_list = env_pend.get("data", {}).get("handoffs", [])
+            if not pending_list:
+                reply_text = "You are welcome! Let me know if you need anything else."
+                msg = await append_message(
+                    ctx.tenant_id,
+                    ctx.session_id,
+                    role="agent",
+                    text=reply_text,
+                    agent_id=ctx.agent_id,
+                )
+                await bus.emit(
+                    "message",
+                    {"role": "agent", "agent_id": ctx.agent_id, "text": reply_text, "seq": msg["seq"]},
+                )
+                return AgentTurnResult(messages=[msg], handoff_created=None)
+
+            handoff_id = pending_list[0]["id"]
+            env_acc = await self._call_and_emit(ctx, "accept_handoff", {"handoff_id": handoff_id}, bus)
+            carries = env_acc.get("data", {}).get("carries", {})
+            await bus.emit(
+                "handoff",
+                {
+                    "handoff_id": handoff_id,
+                    "status": "ACCEPTED",
+                    "from_agent": "agent-triage",
+                    "to_agent": ctx.agent_id,
+                    "carries": carries,
+                },
+            )
+
+            env_p = await self._call_and_emit(
+                ctx, "find_procedure", {"situation": "VPN token expired"}, bus
+            )
+            procedures = env_p.get("data", {}).get("procedures", [])
+            proc_id = "proc-vpn-token-reset"
+            proc_name = procedures[0]["name"] if procedures else "VPN Token Reset"
+
+            tech_text = f"Following the '{proc_name}' steps, I reset your VPN token."
+            msg3 = await append_message(
+                ctx.tenant_id,
+                ctx.session_id,
+                role="agent",
+                text=tech_text,
+                agent_id=ctx.agent_id,
+            )
+            await bus.emit(
+                "message",
+                {"role": "agent", "agent_id": ctx.agent_id, "text": tech_text, "seq": msg3["seq"]},
+            )
+
+            await self._call_and_emit(
+                ctx,
+                "record_procedure_outcome",
+                {"procedure_id": proc_id, "outcome": "success"},
+                bus,
+            )
+            await bus.emit(
+                "procedure_event",
+                {"procedure_id": proc_id, "kind": "outcome", "detail": "success"},
+            )
+
+            await self._call_and_emit(
+                ctx,
+                "complete_handoff",
+                {
+                    "handoff_id": handoff_id,
+                    "outcome": "resolved",
+                    "summary": "VPN token reset",
+                },
+                bus,
+            )
+            await bus.emit(
+                "handoff",
+                {
+                    "handoff_id": handoff_id,
+                    "status": "COMPLETED",
+                    "from_agent": "agent-triage",
+                    "to_agent": ctx.agent_id,
+                    "carries": carries,
+                },
+            )
+
+            env_close = await self._call_and_emit(
+                ctx, "close_session", {"outcome": "resolved"}, bus
+            )
+            close_data = env_close.get("data", {})
+            promoted = close_data.get("promoted", [])
+            for p_id in promoted:
+                await bus.emit(
+                    "procedure_event",
+                    {"procedure_id": p_id, "kind": "promoted", "detail": "promoted to ACTIVE"},
+                )
+
+            await bus.emit(
+                "session_closed",
+                {
+                    "episode_id": close_data.get("episode_id"),
+                    "importance": close_data.get("importance"),
+                    "facts_changed": close_data.get("facts_changed", []),
+                    "promoted": promoted,
+                },
+            )
+            return AgentTurnResult(messages=[msg3], handoff_created=None)
+
+        return AgentTurnResult(messages=[], handoff_created=None)
 
 
 async def run_mock_scenario(scenario_name: str, bus: EventBus | None = None) -> EventBus:
