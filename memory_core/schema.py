@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from memory_core.config import settings
 from memory_core.db import TenantDB, get_tenant_db

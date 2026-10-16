@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+
 from memory_core.config import settings
 from memory_core.errors import ForbiddenError, InvalidInputError
 

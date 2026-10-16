@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-import os
+
 import pytest
 
 from memory_core.clock import now, now_ms, to_iso

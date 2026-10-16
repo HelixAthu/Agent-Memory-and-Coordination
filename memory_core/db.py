@@ -8,6 +8,7 @@ import time
 from typing import Any
 
 from falkordb import FalkorDB
+
 try:
     from falkordb.asyncio import FalkorDB as AsyncFalkorDB
     HAS_ASYNC = True
@@ -28,26 +29,49 @@ class TenantDB:
         self.tenant_id: str = validate_tenant_id(tenant_id)
         self.graph_name: str = graph_name(self.tenant_id)
         self.max_inflight: int = max_inflight or settings.max_inflight
-        self.semaphore: asyncio.Semaphore = asyncio.Semaphore(self.max_inflight)
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._semaphore: asyncio.Semaphore | None = None
+        self._async_client: AsyncFalkorDB | None = None
+        self._async_graph: Any = None
         self._sync_client: FalkorDB = FalkorDB(host=settings.falkordb_host, port=settings.falkordb_port)
 
-        if HAS_ASYNC:
-            self._async_client: AsyncFalkorDB | None = AsyncFalkorDB(
-                host=settings.falkordb_host,
-                port=settings.falkordb_port,
-            )
-            self._async_graph = self._async_client.select_graph(self.graph_name)
-        else:
-            self._async_client = None
-            self._async_graph = None
+    def _ensure_async_client(self) -> tuple[asyncio.Semaphore, Any]:
+        """Ensure semaphore and async graph connection belong to the current running event loop."""
+        try:
+            current_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            current_loop = None
+
+        if self._loop is None or self._loop != current_loop or self._loop.is_closed():
+            self._loop = current_loop
+            self._semaphore = asyncio.Semaphore(self.max_inflight)
+            if HAS_ASYNC:
+                self._async_client = AsyncFalkorDB(
+                    host=settings.falkordb_host,
+                    port=settings.falkordb_port,
+                )
+                self._async_graph = self._async_client.select_graph(self.graph_name)
+            else:
+                self._async_client = None
+                self._async_graph = None
+
+        sem = self._semaphore or asyncio.Semaphore(self.max_inflight)
+        return sem, self._async_graph
+
+    @property
+    def semaphore(self) -> asyncio.Semaphore:
+        """Retrieve the loop-bound semaphore for in-flight concurrency control."""
+        sem, _ = self._ensure_async_client()
+        return sem
 
     async def run_ro(self, cypher: str, params: dict[str, Any] | None = None) -> list[Any]:
         """Execute a read-only query using ro_query with semaphore and timing."""
-        async with self.semaphore:
+        sem, async_g = self._ensure_async_client()
+        async with sem:
             t0 = time.perf_counter()
             try:
-                if self._async_graph is not None:
-                    res = await self._async_graph.ro_query(cypher, params or {})
+                if async_g is not None:
+                    res = await async_g.ro_query(cypher, params or {})
                     result_set = res.result_set
                 else:
                     g = self._sync_client.select_graph(self.graph_name)
@@ -62,11 +86,12 @@ class TenantDB:
 
     async def run_rw(self, cypher: str, params: dict[str, Any] | None = None) -> list[Any]:
         """Execute a read-write mutation query using query with semaphore and timing."""
-        async with self.semaphore:
+        sem, async_g = self._ensure_async_client()
+        async with sem:
             t0 = time.perf_counter()
             try:
-                if self._async_graph is not None:
-                    res = await self._async_graph.query(cypher, params or {})
+                if async_g is not None:
+                    res = await async_g.query(cypher, params or {})
                     result_set = res.result_set
                 else:
                     g = self._sync_client.select_graph(self.graph_name)
@@ -81,9 +106,10 @@ class TenantDB:
 
     async def delete_graph(self) -> None:
         """Delete the tenant's FalkorDB graph."""
+        _, async_g = self._ensure_async_client()
         try:
-            if self._async_graph is not None:
-                await self._async_graph.delete()
+            if async_g is not None:
+                await async_g.delete()
             else:
                 await asyncio.to_thread(self._sync_client.select_graph(self.graph_name).delete)
         except Exception as e:

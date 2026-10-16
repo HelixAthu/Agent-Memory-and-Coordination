@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 from unittest.mock import MagicMock
-import pytest
 
 from memory_core.embedder import (
     GeminiEmbedder,

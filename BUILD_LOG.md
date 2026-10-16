@@ -77,3 +77,37 @@ This log tracks execution output, test results, and task completion across the b
   ```
 - **Assertions:** Spec stem rules asserted; tokens("INV-1042") produces ["inv", "1042"]; mock embeddings unit length; G2 cosine similarities verified (ep-p1 ≈ 0.555, ep-p3 ≈ 0.267, ep-p2 == 0.0); embedder factory verified for mock and Gemini.
 - **Status:** DONE
+
+---
+
+## T4. Schema and Seed
+
+- **Commits:**
+  - `feat(core): schema, indexes and constraints per tenant`
+  - `feat(seed): acme agents, users, entities and sessions`
+  - `feat(seed): acme episodes, facts, procedures and tasks`
+  - `feat(seed): globex tenant data`
+  - `feat(seed): idempotent seed script with --reset`
+  - `test(seed): golden counts G1`
+- **Acceptance Output:**
+  ```bash
+  $ make seed
+  .venv/bin/python seed/seed.py
+  [acme] Seeded successfully: 53 nodes, 91 edges
+  [globex] Seeded successfully: 11 nodes, 15 edges
+
+  $ pytest tests/test_seed.py
+  ============================== 5 passed in 1.94s ===============================
+  ```
+- **Assertions:**
+  - `mem_acme` G1 counts match exactly: 53 nodes (Agent 3, User 2, Entity 8, Session 5, Message 20, Episode 5, Fact 6,
+    Procedure 2, Task 2) and 91 edges (HAD_SESSION 5, HAS_MESSAGE 20, NEXT 15, SUMMARIZED_AS 5, ABOUT 5, MENTIONS 11,
+    INVOLVED 9, HAS_FACT 6, DERIVED_FROM 5, SUPERSEDES 1, APPLIED 2, EXPERT_IN 5, FOR_USER 2).
+  - `mem_globex` G1 counts match exactly: 11 nodes (Agent 1, User 1, Entity 1, Session 1, Message 4, Episode 1, Fact 1,
+    Procedure 1) and 15 edges.
+  - Seeding is idempotent; repeated runs leave counts unchanged.
+  - Every Fact is attached via `HAS_FACT` to exactly one User.
+  - Graph export serialization sanitization strips `embedding` keys from all nodes.
+- **Tag:** `v0.1-core`
+- **Status:** DONE
+
