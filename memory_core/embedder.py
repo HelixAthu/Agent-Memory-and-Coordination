@@ -1,11 +1,14 @@
-"""Tokenizer, stemmer, mock hashing embedder, and cosine similarity calculations."""
+"""Tokenizer, stemmer, mock hashing embedder, Gemini embedder, and factory interface."""
 
 from __future__ import annotations
 
 import hashlib
 import math
+import os
 import re
-from typing import Any
+from typing import Any, Protocol
+
+from memory_core.config import settings
 
 STOPWORDS: set[str] = {
     "a", "an", "the", "on", "in", "of", "to", "for", "my", "i", "me", "is", "was",
@@ -59,3 +62,64 @@ def cosine(a: list[float], b: list[float]) -> float:
         return 0.0
     val = dot / (na * nb)
     return max(0.0, min(1.0, float(val)))
+
+
+class Embedder(Protocol):
+    """Protocol for embedding providers."""
+
+    def embed(self, text: str) -> list[float]:
+        """Generate an L2-normalized float embedding vector for text."""
+        ...
+
+
+class MockEmbedder:
+    """Deterministic MD5 hashing embedder."""
+
+    def __init__(self, dim: int = 4096) -> None:
+        self.dim: int = dim
+
+    def embed(self, text: str) -> list[float]:
+        """Embed text using deterministic token hashing."""
+        return mock_embed(text, dim=self.dim)
+
+
+class GeminiEmbedder:
+    """Google Gemini embedder using google-genai SDK."""
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        dim: int | None = None,
+        client: Any | None = None,
+    ) -> None:
+        from google import genai
+
+        self.model: str = model or settings.embed_model
+        self.dim: int = dim or 768
+        self.api_key: str = api_key or settings.gemini_api_key or os.getenv("GEMINI_API_KEY", "")
+        self.client: genai.Client = client or genai.Client(api_key=self.api_key)
+
+    def embed(self, text: str) -> list[float]:
+        """Embed text using Gemini embed_content and apply L2 normalization."""
+        from google.genai import types
+
+        config = types.EmbedContentConfig(output_dimensionality=self.dim)
+        res = self.client.models.embed_content(
+            model=self.model,
+            contents=text,
+            config=config,
+        )
+        vec: list[float] = list(res.embedding.values)
+        norm = math.sqrt(sum(x * x for x in vec))
+        if norm == 0.0:
+            return vec
+        return [x / norm for x in vec]
+
+
+def get_embedder(provider: str | None = None, dim: int | None = None, client: Any | None = None) -> Embedder:
+    """Factory returning configured embedder instance based on EMBED_PROVIDER."""
+    prov = (provider or settings.embed_provider).strip().lower()
+    if prov == "mock":
+        return MockEmbedder(dim=dim or settings.embed_dim)
+    return GeminiEmbedder(dim=dim or 768, client=client)
