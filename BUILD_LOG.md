@@ -45,3 +45,19 @@ This log tracks execution output, test results, and task completion across the b
   ```
 - **Probe Summary:** Async client supported (`falkordb.asyncio`), vector index functional, write atomicity serialized, unique constraints mapped to MERGE fallback.
 - **Status:** DONE
+
+---
+
+## T2. Core: Config, Clock, Tenancy & DB Layer
+
+- **Commits:**
+  - `feat(core): config, clock and tenant id validation`
+  - `feat(core): per-tenant graph connection with pooled async client`
+  - `test(core): tenancy and clock tests`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_tenancy.py
+  ============================== 5 passed in 0.74s ===============================
+  ```
+- **Assertions:** Valid tenant IDs match pattern, SQL/Cypher injections rejected with `InvalidInputError`, graph name mapped to `mem_<tenant>`, `now()` frozen by `CLOCK_NOW`, `max_inflight` bounded by semaphore.
+- **Status:** DONE
