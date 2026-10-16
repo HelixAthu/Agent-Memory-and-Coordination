@@ -170,7 +170,7 @@ async def stream_session_events(
             sent_seqs.add(evt.seq)
             payload = json.dumps(asdict(evt), ensure_ascii=False)
             yield {"event": evt.type, "data": payload}
-            if evt.type in ("final", "error") and not evt.data.get("recoverable", True):
+            if evt.type == "final" or (evt.type == "error" and not evt.data.get("recoverable", True)):
                 return
 
         while True:
@@ -190,7 +190,7 @@ async def stream_session_events(
             payload = json.dumps(asdict(evt), ensure_ascii=False)
             yield {"event": evt.type, "data": payload}
 
-            if evt.type in ("final", "error") and not evt.data.get("recoverable", True):
+            if evt.type == "final" or (evt.type == "error" and not evt.data.get("recoverable", True)):
                 break
 
     return EventSourceResponse(event_generator())
