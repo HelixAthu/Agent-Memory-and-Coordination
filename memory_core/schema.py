@@ -45,18 +45,32 @@ async def ensure_tenant(tenant_id: str, dim: int | None = None, db: TenantDB | N
     target_db: TenantDB = db or await get_tenant_db(valid_id)
     vector_dim: int = int(dim or settings.embed_dim)
 
+    existing_indexes: set[tuple[str, str]] = set()
+    try:
+        rows = await target_db.run_ro("CALL db.indexes()")
+        for row in rows:
+            if len(row) >= 2 and isinstance(row[1], list):
+                lbl = str(row[0])
+                for p in row[1]:
+                    existing_indexes.add((lbl, str(p)))
+    except Exception:
+        existing_indexes = set()
+
     # 1. Range indexes on id for all labels
     for label in INDEXED_LABELS:
+        if (label, "id") in existing_indexes:
+            continue
         cypher = f"CREATE INDEX FOR (n:{label}) ON (n.id)"
         try:
             await target_db.run_rw(cypher)
             logger.debug("[%s] Created range index on %s.id", valid_id, label)
         except Exception as e:
-            # Index already exists or duplicate; continue
             logger.debug("[%s] Range index on %s.id existed or skipped: %s", valid_id, label, e)
 
     # 2. Specific property range indexes
     for label, prop in PROPERTY_INDEXES:
+        if (label, prop) in existing_indexes:
+            continue
         cypher = f"CREATE INDEX FOR (n:{label}) ON (n.{prop})"
         try:
             await target_db.run_rw(cypher)
@@ -66,6 +80,8 @@ async def ensure_tenant(tenant_id: str, dim: int | None = None, db: TenantDB | N
 
     # 3. Vector indexes for Episode, Fact, Procedure
     for label in VECTOR_INDEX_LABELS:
+        if (label, "embedding") in existing_indexes:
+            continue
         cypher = (
             f"CREATE VECTOR INDEX FOR (n:{label}) ON (n.embedding) "
             f"OPTIONS {{dimension: {vector_dim}, similarityFunction: 'cosine'}}"
