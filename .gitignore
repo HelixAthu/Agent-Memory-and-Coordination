@@ -2,6 +2,15 @@
 node_modules/
 **/node_modules/
 
+# Python virtualenv & cache
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
 # Build output
 dist/
 **/dist/
@@ -40,12 +49,14 @@ Desktop.ini
 !.vscode/extensions.json
 .idea/
 
-# Temporary files
+# Temporary and runtime files
 *.tmp
 *.temp
 *.swp
-
-# Backend runtime files
+probe_results.json
+outbox/
+*.jsonl
+!replays/*.jsonl
 uploads/
 tmp/
 temp/
