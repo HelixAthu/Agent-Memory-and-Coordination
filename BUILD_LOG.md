@@ -221,6 +221,42 @@ This log tracks execution output, test results, and task completion across the b
   - 20 parallel `recall_memory` calls over a single stdio MCP session all succeed.
 - **Status:** DONE
 
+---
 
+## T10. LLM Adapter & Schema Simplifier
 
+- **Commits:**
+  - `fc5cc8c` `feat(llm): provider-neutral interface and tool schema simplifier`
+  - `ebdcd38` `feat(llm): gemini session with thought-signature handling`
+  - `0117048` `chore: gemini probe script`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_llm_gemini.py
+  ============================== 5 passed in 0.94s ===============================
+  ```
+- **Assertions:**
+  - Provider-neutral LLMSession, ToolCall, TurnResult interfaces with FakeLLMClient.
+  - Tool schema simplifier flattens definitions, handles anyOf/allOf, and strips context fields.
+  - GeminiClient handles thought signatures with round-trip thought recovery.
+  - Standalone probe script with replay fallback tested.
+- **Status:** DONE
 
+---
+
+## T11. Agent Event Bus, Bridge & Mock Scenarios
+
+- **Commits:**
+  - `af5e045` `feat(agent): event bus and bridge with context injection`
+  - `feat(agent): scripted mock scenarios`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_agent_mock.py
+  ============================== 6 passed in 1.83s ===============================
+  ```
+- **Assertions:**
+  - EventBus emits and collects structured events with subscribers and log sinks.
+  - MCPBridge dispatches tool calls, hides non-allowlisted tools per role, and injects context envelopes.
+  - Scripted mock agent runner executes all 3 core scenarios: continuity, fact_update, procedure_learning.
+  - Goldens G2, G4, G8, G9, G10 verified end-to-end via event bus and tenant graph assertions.
+  - Headless script generates replays for continuity, fact_update, and procedure_learning.
+- **Status:** IN PROGRESS (Commits 39-40 done)

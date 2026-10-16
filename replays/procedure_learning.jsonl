@@ -1,0 +1,43 @@
+{"seq": 1, "ts": "2026-10-16T16:22:48.235075+00:00", "type": "session_started", "data": {"session_id": "sess-demo-vpn", "user_id": "user-rahul", "mode": "mock"}}
+{"seq": 2, "ts": "2026-10-16T16:22:48.235831+00:00", "type": "message", "data": {"role": "user", "agent_id": null, "text": "My VPN token expired again.", "seq": 1}}
+{"seq": 3, "ts": "2026-10-16T16:22:48.238049+00:00", "type": "agent_active", "data": {"agent_id": "agent-triage", "role": "triage"}}
+{"seq": 4, "ts": "2026-10-16T16:22:48.238084+00:00", "type": "tool_call", "data": {"call_id": "call-5592f89f", "agent_id": "agent-triage", "tool": "get_user_profile", "args": {}}}
+{"seq": 5, "ts": "2026-10-16T16:22:48.242517+00:00", "type": "memory_visit", "data": {"call_id": "call-5592f89f", "kind": "read", "node_ids": ["fact-6e097b4f", "fact-r-plan", "fact-r-channel"], "edge_keys": []}}
+{"seq": 6, "ts": "2026-10-16T16:22:48.242538+00:00", "type": "tool_result", "data": {"call_id": "call-5592f89f", "ok": true, "summary": "1 items", "query_ids": ["Q-FACTS-ACTIVE"], "ms": 4.17}}
+{"seq": 7, "ts": "2026-10-16T16:22:48.242561+00:00", "type": "tool_call", "data": {"call_id": "call-699c4d3c", "agent_id": "agent-triage", "tool": "find_procedure", "args": {"situation": "My VPN token expired again."}}}
+{"seq": 8, "ts": "2026-10-16T16:22:48.266116+00:00", "type": "memory_visit", "data": {"call_id": "call-699c4d3c", "kind": "read", "node_ids": ["proc-vpn-token-reset", "proc-dup-charge-refund"], "edge_keys": []}}
+{"seq": 9, "ts": "2026-10-16T16:22:48.266139+00:00", "type": "tool_result", "data": {"call_id": "call-699c4d3c", "ok": true, "summary": "1 items", "query_ids": ["Q-PROC-VEC", "Q-PROC-STATS"], "ms": 23.35}}
+{"seq": 10, "ts": "2026-10-16T16:22:48.267651+00:00", "type": "message", "data": {"role": "agent", "agent_id": "agent-triage", "text": "I will bring in Technical Support.", "seq": 2}}
+{"seq": 11, "ts": "2026-10-16T16:22:48.267680+00:00", "type": "tool_call", "data": {"call_id": "call-4be02a4d", "agent_id": "agent-triage", "tool": "route_to_specialist", "args": {"topic_id": "topic-vpn"}}}
+{"seq": 12, "ts": "2026-10-16T16:22:48.272309+00:00", "type": "memory_visit", "data": {"call_id": "call-4be02a4d", "kind": "read", "node_ids": ["agent-tech"], "edge_keys": []}}
+{"seq": 13, "ts": "2026-10-16T16:22:48.272327+00:00", "type": "tool_result", "data": {"call_id": "call-4be02a4d", "ok": true, "summary": "1 items", "query_ids": ["Q-AGENT-ROUTE"], "ms": 4.42}}
+{"seq": 14, "ts": "2026-10-16T16:22:48.272357+00:00", "type": "tool_call", "data": {"call_id": "call-89ad8466", "agent_id": "agent-triage", "tool": "create_handoff", "args": {"to_agent_id": "agent-tech", "reason": "vpn token expired"}}}
+{"seq": 15, "ts": "2026-10-16T16:22:48.319699+00:00", "type": "memory_visit", "data": {"call_id": "call-89ad8466", "kind": "handoff", "node_ids": ["hof-9c29413a"], "edge_keys": []}}
+{"seq": 16, "ts": "2026-10-16T16:22:48.319711+00:00", "type": "tool_result", "data": {"call_id": "call-89ad8466", "ok": true, "summary": "3 items", "query_ids": ["Q-HANDOFF-CREATE"], "ms": 47.16}}
+{"seq": 17, "ts": "2026-10-16T16:22:48.319714+00:00", "type": "handoff", "data": {"handoff_id": "hof-9c29413a", "status": "PENDING", "from_agent": "agent-triage", "to_agent": "agent-tech", "carries": {"fact": 3, "episode": 2, "procedure": 0, "message": 2}}}
+{"seq": 18, "ts": "2026-10-16T16:22:48.319718+00:00", "type": "agent_active", "data": {"agent_id": "agent-tech", "role": "specialist"}}
+{"seq": 19, "ts": "2026-10-16T16:22:48.319735+00:00", "type": "tool_call", "data": {"call_id": "call-3dec35e3", "agent_id": "agent-tech", "tool": "get_pending_handoffs", "args": {}}}
+{"seq": 20, "ts": "2026-10-16T16:22:48.321433+00:00", "type": "memory_visit", "data": {"call_id": "call-3dec35e3", "kind": "read", "node_ids": ["hof-9c29413a"], "edge_keys": []}}
+{"seq": 21, "ts": "2026-10-16T16:22:48.321448+00:00", "type": "tool_result", "data": {"call_id": "call-3dec35e3", "ok": true, "summary": "1 items", "query_ids": ["Q-HANDOFF-PENDING"], "ms": 1.55}}
+{"seq": 22, "ts": "2026-10-16T16:22:48.321470+00:00", "type": "tool_call", "data": {"call_id": "call-709c5ab3", "agent_id": "agent-tech", "tool": "accept_handoff", "args": {"handoff_id": "hof-9c29413a"}}}
+{"seq": 23, "ts": "2026-10-16T16:22:48.325050+00:00", "type": "memory_visit", "data": {"call_id": "call-709c5ab3", "kind": "handoff", "node_ids": ["hof-9c29413a"], "edge_keys": []}}
+{"seq": 24, "ts": "2026-10-16T16:22:48.325060+00:00", "type": "tool_result", "data": {"call_id": "call-709c5ab3", "ok": true, "summary": "3 items", "query_ids": ["Q-HANDOFF-ACCEPT"], "ms": 3.44}}
+{"seq": 25, "ts": "2026-10-16T16:22:48.325063+00:00", "type": "handoff", "data": {"handoff_id": "hof-9c29413a", "status": "ACCEPTED", "from_agent": "agent-triage", "to_agent": "agent-tech", "carries": {"fact": 3, "episode": 2, "procedure": 0, "message": 2}}}
+{"seq": 26, "ts": "2026-10-16T16:22:48.325084+00:00", "type": "tool_call", "data": {"call_id": "call-f19a4d81", "agent_id": "agent-tech", "tool": "find_procedure", "args": {"situation": "My VPN token expired again."}}}
+{"seq": 27, "ts": "2026-10-16T16:22:48.347123+00:00", "type": "memory_visit", "data": {"call_id": "call-f19a4d81", "kind": "read", "node_ids": ["proc-vpn-token-reset", "proc-dup-charge-refund"], "edge_keys": []}}
+{"seq": 28, "ts": "2026-10-16T16:22:48.347135+00:00", "type": "tool_result", "data": {"call_id": "call-f19a4d81", "ok": true, "summary": "1 items", "query_ids": ["Q-PROC-VEC", "Q-PROC-STATS"], "ms": 21.91}}
+{"seq": 29, "ts": "2026-10-16T16:22:48.348673+00:00", "type": "message", "data": {"role": "agent", "agent_id": "agent-tech", "text": "Following the 'Reset VPN token' steps, I reset your VPN token.", "seq": 3}}
+{"seq": 30, "ts": "2026-10-16T16:22:48.348701+00:00", "type": "tool_call", "data": {"call_id": "call-1030cb14", "agent_id": "agent-tech", "tool": "record_procedure_outcome", "args": {"procedure_id": "proc-vpn-token-reset", "outcome": "success"}}}
+{"seq": 31, "ts": "2026-10-16T16:22:48.351539+00:00", "type": "memory_visit", "data": {"call_id": "call-1030cb14", "kind": "write", "node_ids": ["proc-vpn-token-reset"], "edge_keys": []}}
+{"seq": 32, "ts": "2026-10-16T16:22:48.351547+00:00", "type": "tool_result", "data": {"call_id": "call-1030cb14", "ok": true, "summary": "5 items", "query_ids": ["Q-PROC-OUTCOME"], "ms": 2.67}}
+{"seq": 33, "ts": "2026-10-16T16:22:48.351550+00:00", "type": "procedure_event", "data": {"procedure_id": "proc-vpn-token-reset", "kind": "outcome", "detail": "success"}}
+{"seq": 34, "ts": "2026-10-16T16:22:48.351567+00:00", "type": "tool_call", "data": {"call_id": "call-0f16b459", "agent_id": "agent-tech", "tool": "complete_handoff", "args": {"handoff_id": "hof-9c29413a", "outcome": "resolved", "summary": "VPN token reset"}}}
+{"seq": 35, "ts": "2026-10-16T16:22:48.353433+00:00", "type": "memory_visit", "data": {"call_id": "call-0f16b459", "kind": "handoff", "node_ids": ["hof-9c29413a"], "edge_keys": []}}
+{"seq": 36, "ts": "2026-10-16T16:22:48.353440+00:00", "type": "tool_result", "data": {"call_id": "call-0f16b459", "ok": true, "summary": "2 items", "query_ids": ["Q-HANDOFF-COMPLETE"], "ms": 1.77}}
+{"seq": 37, "ts": "2026-10-16T16:22:48.353443+00:00", "type": "handoff", "data": {"handoff_id": "hof-9c29413a", "status": "COMPLETED", "from_agent": "agent-triage", "to_agent": "agent-tech", "carries": {"fact": 3, "episode": 2, "procedure": 0, "message": 2}}}
+{"seq": 38, "ts": "2026-10-16T16:22:48.353456+00:00", "type": "tool_call", "data": {"call_id": "call-993de605", "agent_id": "agent-tech", "tool": "close_session", "args": {"outcome": "resolved"}}}
+{"seq": 39, "ts": "2026-10-16T16:22:48.366660+00:00", "type": "memory_visit", "data": {"call_id": "call-993de605", "kind": "write", "node_ids": ["ep-sess-demo-vpn", "proc-vpn-token-reset"], "edge_keys": []}}
+{"seq": 40, "ts": "2026-10-16T16:22:48.366674+00:00", "type": "tool_result", "data": {"call_id": "call-993de605", "ok": true, "summary": "4 items", "query_ids": ["Q-SESSION-CLOSE", "Q-EP-CREATE"], "ms": 13.07}}
+{"seq": 41, "ts": "2026-10-16T16:22:48.366677+00:00", "type": "procedure_event", "data": {"procedure_id": "proc-vpn-token-reset", "kind": "promoted", "detail": "promoted to ACTIVE"}}
+{"seq": 42, "ts": "2026-10-16T16:22:48.366679+00:00", "type": "session_closed", "data": {"episode_id": "ep-sess-demo-vpn", "importance": 0.8, "facts_changed": [], "promoted": ["proc-vpn-token-reset"]}}
+{"seq": 43, "ts": "2026-10-16T16:22:48.366686+00:00", "type": "final", "data": {"session_id": "sess-demo-vpn", "summary": "Scenario procedure_learning completed successfully"}}

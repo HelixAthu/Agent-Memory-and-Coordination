@@ -1,0 +1,20 @@
+{"seq": 1, "ts": "2026-10-16T16:22:47.273254+00:00", "type": "session_started", "data": {"session_id": "sess-demo-move", "user_id": "user-priya", "mode": "mock"}}
+{"seq": 2, "ts": "2026-10-16T16:22:47.274874+00:00", "type": "message", "data": {"role": "user", "agent_id": null, "text": "By the way, I moved to Pune and I prefer chat now.", "seq": 1}}
+{"seq": 3, "ts": "2026-10-16T16:22:47.280406+00:00", "type": "agent_active", "data": {"agent_id": "agent-triage", "role": "triage"}}
+{"seq": 4, "ts": "2026-10-16T16:22:47.280451+00:00", "type": "tool_call", "data": {"call_id": "call-0e0e6bdf", "agent_id": "agent-triage", "tool": "get_user_profile", "args": {}}}
+{"seq": 5, "ts": "2026-10-16T16:22:47.285709+00:00", "type": "memory_visit", "data": {"call_id": "call-0e0e6bdf", "kind": "read", "node_ids": ["fact-p-city", "fact-p-plan", "fact-p-channel"], "edge_keys": []}}
+{"seq": 6, "ts": "2026-10-16T16:22:47.285743+00:00", "type": "tool_result", "data": {"call_id": "call-0e0e6bdf", "ok": true, "summary": "1 items", "query_ids": ["Q-FACTS-ACTIVE"], "ms": 4.88}}
+{"seq": 7, "ts": "2026-10-16T16:22:47.285797+00:00", "type": "tool_call", "data": {"call_id": "call-42565c8c", "agent_id": "agent-triage", "tool": "remember_fact", "args": {"predicate": "city", "object": "Pune"}}}
+{"seq": 8, "ts": "2026-10-16T16:22:47.316345+00:00", "type": "memory_visit", "data": {"call_id": "call-42565c8c", "kind": "write", "node_ids": ["fact-0039c2d3", "fact-p-city"], "edge_keys": []}}
+{"seq": 9, "ts": "2026-10-16T16:22:47.316395+00:00", "type": "tool_result", "data": {"call_id": "call-42565c8c", "ok": true, "summary": "3 items", "query_ids": ["Q-FACT-CAS-WRITE"], "ms": 30.1}}
+{"seq": 10, "ts": "2026-10-16T16:22:47.316405+00:00", "type": "fact_update", "data": {"action": "superseded", "fact_id": "fact-0039c2d3", "old_fact_id": "fact-p-city", "predicate": "city", "object": "Pune"}}
+{"seq": 11, "ts": "2026-10-16T16:22:47.316453+00:00", "type": "tool_call", "data": {"call_id": "call-76c9e7e9", "agent_id": "agent-triage", "tool": "remember_fact", "args": {"predicate": "prefers_channel", "object": "chat"}}}
+{"seq": 12, "ts": "2026-10-16T16:22:47.340227+00:00", "type": "memory_visit", "data": {"call_id": "call-76c9e7e9", "kind": "write", "node_ids": ["fact-76193b9e", "fact-p-channel"], "edge_keys": []}}
+{"seq": 13, "ts": "2026-10-16T16:22:47.340241+00:00", "type": "tool_result", "data": {"call_id": "call-76c9e7e9", "ok": true, "summary": "3 items", "query_ids": ["Q-FACT-CAS-WRITE"], "ms": 23.57}}
+{"seq": 14, "ts": "2026-10-16T16:22:47.340245+00:00", "type": "fact_update", "data": {"action": "superseded", "fact_id": "fact-76193b9e", "old_fact_id": "fact-p-channel", "predicate": "prefers_channel", "object": "chat"}}
+{"seq": 15, "ts": "2026-10-16T16:22:47.341665+00:00", "type": "message", "data": {"role": "agent", "agent_id": "agent-triage", "text": "Thanks Priya, I updated your city to Pune and your preferred channel to chat.", "seq": 2}}
+{"seq": 16, "ts": "2026-10-16T16:22:47.341697+00:00", "type": "tool_call", "data": {"call_id": "call-9000aff7", "agent_id": "agent-triage", "tool": "close_session", "args": {"outcome": "resolved"}}}
+{"seq": 17, "ts": "2026-10-16T16:22:47.366040+00:00", "type": "memory_visit", "data": {"call_id": "call-9000aff7", "kind": "write", "node_ids": ["ep-sess-demo-move"], "edge_keys": []}}
+{"seq": 18, "ts": "2026-10-16T16:22:47.366054+00:00", "type": "tool_result", "data": {"call_id": "call-9000aff7", "ok": true, "summary": "4 items", "query_ids": ["Q-SESSION-CLOSE", "Q-EP-CREATE"], "ms": 24.15}}
+{"seq": 19, "ts": "2026-10-16T16:22:47.366058+00:00", "type": "session_closed", "data": {"episode_id": "ep-sess-demo-move", "importance": 0.7, "facts_changed": ["fact-0039c2d3"], "promoted": []}}
+{"seq": 20, "ts": "2026-10-16T16:22:47.366063+00:00", "type": "final", "data": {"session_id": "sess-demo-move", "summary": "Scenario fact_update completed successfully"}}
