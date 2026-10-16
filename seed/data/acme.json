@@ -319,5 +319,196 @@
       "text": "Thanks, that fixed it.",
       "ts": 1780394640
     }
+  ],
+  "episodes": [
+    {
+      "id": "ep-p1",
+      "session_id": "sess-p1",
+      "summary": "Priya reported a duplicate charge on invoice INV-1042; Billing refunded the duplicate; resolved.",
+      "outcome": "resolved",
+      "importance": 0.8,
+      "ts": 1786526400,
+      "status": "ACTIVE",
+      "mentions": ["topic-billing", "topic-refunds", "invoice-inv-1042"],
+      "involved": ["agent-triage", "agent-billing"]
+    },
+    {
+      "id": "ep-p2",
+      "session_id": "sess-p2",
+      "summary": "Priya could not log in to the VPN client; Tech reset her token; resolved.",
+      "outcome": "resolved",
+      "importance": 0.5,
+      "ts": 1788444900,
+      "status": "ACTIVE",
+      "mentions": ["topic-vpn", "topic-login", "product-vpn-client"],
+      "involved": ["agent-triage", "agent-tech"]
+    },
+    {
+      "id": "ep-p3",
+      "session_id": "sess-p3",
+      "summary": "Priya asked about a late fee on invoice INV-1042; Billing explained the fee policy; resolved.",
+      "outcome": "resolved",
+      "importance": 0.6,
+      "ts": 1790593800,
+      "status": "ACTIVE",
+      "mentions": ["topic-billing", "invoice-inv-1042"],
+      "involved": ["agent-triage", "agent-billing"]
+    },
+    {
+      "id": "ep-r1",
+      "session_id": "sess-r1",
+      "summary": "Rahul's VPN token expired; Tech reset his token; resolved.",
+      "outcome": "resolved",
+      "importance": 0.5,
+      "ts": 1789920720,
+      "status": "ACTIVE",
+      "mentions": ["topic-vpn", "topic-login"],
+      "involved": ["agent-triage", "agent-tech"]
+    },
+    {
+      "id": "ep-r2",
+      "session_id": "sess-r2",
+      "summary": "Rahul asked how to format invoice PDFs; Triage answered; resolved.",
+      "outcome": "resolved",
+      "importance": 0.1,
+      "ts": 1780394700,
+      "status": "ACTIVE",
+      "mentions": ["topic-general"],
+      "involved": ["agent-triage"]
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact-p-plan",
+      "user_id": "user-priya",
+      "predicate": "plan",
+      "object": "Pro",
+      "confidence": 0.9,
+      "status": "ACTIVE",
+      "valid_from": 1786492800,
+      "valid_to": null,
+      "derived_from": "sess-p1"
+    },
+    {
+      "id": "fact-p-channel",
+      "user_id": "user-priya",
+      "predicate": "prefers_channel",
+      "object": "email",
+      "confidence": 0.8,
+      "status": "ACTIVE",
+      "valid_from": 1786492800,
+      "valid_to": null,
+      "derived_from": "sess-p1"
+    },
+    {
+      "id": "fact-p-channel-old",
+      "user_id": "user-priya",
+      "predicate": "prefers_channel",
+      "object": "phone",
+      "confidence": 0.6,
+      "status": "SUPERSEDED",
+      "valid_from": 1780272000,
+      "valid_to": 1786492800,
+      "derived_from": null
+    },
+    {
+      "id": "fact-p-city",
+      "user_id": "user-priya",
+      "predicate": "city",
+      "object": "Mumbai",
+      "confidence": 0.7,
+      "status": "ACTIVE",
+      "valid_from": 1786492800,
+      "valid_to": null,
+      "derived_from": "sess-p1"
+    },
+    {
+      "id": "fact-r-plan",
+      "user_id": "user-rahul",
+      "predicate": "plan",
+      "object": "Basic",
+      "confidence": 0.9,
+      "status": "ACTIVE",
+      "valid_from": 1789862400,
+      "valid_to": null,
+      "derived_from": "sess-r1"
+    },
+    {
+      "id": "fact-r-channel",
+      "user_id": "user-rahul",
+      "predicate": "prefers_channel",
+      "object": "chat",
+      "confidence": 0.8,
+      "status": "ACTIVE",
+      "valid_from": 1789862400,
+      "valid_to": null,
+      "derived_from": "sess-r1"
+    }
+  ],
+  "supersedes": [
+    { "new_id": "fact-p-channel", "old_id": "fact-p-channel-old" }
+  ],
+  "procedures": [
+    {
+      "id": "proc-dup-charge-refund",
+      "name": "Refund duplicate charge",
+      "trigger": "duplicate charge refund twice charged invoice",
+      "steps": [
+        "Verify both charges on the invoice",
+        "Confirm the charges are identical",
+        "Issue a refund for the duplicate",
+        "Email the customer the refund reference"
+      ],
+      "status": "ACTIVE",
+      "origin": "policy"
+    },
+    {
+      "id": "proc-vpn-token-reset",
+      "name": "Reset VPN token",
+      "trigger": "vpn login failing token expired reset",
+      "steps": [
+        "Confirm the user identity",
+        "Revoke the old VPN token",
+        "Issue a new token and email it"
+      ],
+      "status": "CANDIDATE",
+      "origin": "learned"
+    }
+  ],
+  "applied": [
+    {
+      "session_id": "sess-p1",
+      "procedure_id": "proc-dup-charge-refund",
+      "outcome": "success",
+      "ts": 1786526400
+    },
+    {
+      "session_id": "sess-p2",
+      "procedure_id": "proc-vpn-token-reset",
+      "outcome": "success",
+      "ts": 1788444900
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-001",
+      "title": "Verify VPN token expiry policy",
+      "status": "OPEN",
+      "priority": 2,
+      "claimed_by": "",
+      "version": 1,
+      "created_at": 1790812800000,
+      "user_id": "user-rahul"
+    },
+    {
+      "id": "task-002",
+      "title": "Send refund confirmation for INV-1042",
+      "status": "DONE",
+      "priority": 1,
+      "claimed_by": "agent-billing",
+      "version": 2,
+      "created_at": 1786492800000,
+      "user_id": "user-priya"
+    }
   ]
 }
