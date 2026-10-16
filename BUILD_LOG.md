@@ -177,6 +177,28 @@ This log tracks execution output, test results, and task completion across the b
   - CANDIDATE procedures are excluded from default recall but included in `find_procedures(include_candidates=True)`.
 - **Status:** DONE
 
+---
+
+## T8. Coordination
+
+- **Commits:**
+  - `feat(coord): task claiming and shared-state CAS`
+  - `feat(coord): routing and handoff protocol`
+  - `test(coord): goldens G7 G8 G11 G12`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_coordination.py
+  ============================== 4 passed in 1.26s ===============================
+  ```
+- **Assertions:**
+  - G7: load-aware routing returns correct specialist agents for all topics; unknown topic returns NotFoundError.
+  - G8: handoff carries exactly 8 elements (3 facts, 2 episodes, 1 procedure, 2 messages); state machine enforces PENDING -> ACCEPTED -> COMPLETED; unauthorized accept returns ForbiddenError; second accept returns ConflictError; 10 concurrent accepts produce exactly 1 success and 9 ConflictError.
+  - G11: claiming task-001 succeeds with version 2; second claim yields ConflictError; claim_next returns NotFoundError when no OPEN tasks remain.
+  - G12: shared state CAS handles version increments and conflicts; 20 concurrent CAS increments successfully terminate with counter value 20.
+- **Tag:** `v0.2-memory`
+- **Status:** DONE
+
+
 
 
 
