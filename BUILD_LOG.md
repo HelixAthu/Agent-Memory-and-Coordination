@@ -132,4 +132,31 @@ This log tracks execution output, test results, and task completion across the b
   - InvalidInputError raised when attempting to set an unregistered predicate.
 - **Status:** DONE
 
+---
+
+## T6. Recall and Consolidation
+
+- **Commits:**
+  - `feat(recall): hybrid vector and graph recall with scoring`
+  - `test(recall): golden recall G2 G3`
+  - `feat(consolidation): close_session episode creation and fact extraction`
+  - `test(consolidation): golden G9`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_recall.py tests/test_consolidation.py
+  ============================== 5 passed in 1.46s ===============================
+  ```
+- **Assertions:**
+  - G2: recall for user-priya produces exact ranking [ep-p1, ep-p3, ep-p2] with ep-p3 boost=1 and ep-p1 boost=0.
+  - Scores match G2 expectations: ep-p1 ≈ 0.485, ep-p3 ≈ 0.405, ep-p2 ≈ 0.087 within 0.05 tolerance.
+  - Active facts returned: exactly {fact-p-plan, fact-p-channel, fact-p-city}.
+  - Procedures returned: [proc-dup-charge-refund] (CANDIDATE procedure excluded).
+  - G3: recall for rahul isolates rahul episodes and facts without cross-user leakage.
+  - Cross-tenant isolation: globex recall returns only Dana's episode, no acme data.
+  - G9: close_session creates episode ep-sess-demo-continuity with importance 0.8 (0.6 base + 0.2 handoff),
+    INVOLVED {agent-triage, agent-billing}, MENTIONS {topic-billing, topic-refunds, invoice-inv-1042},
+    and marks session CLOSED.
+- **Status:** DONE
+
+
 
