@@ -61,3 +61,19 @@ This log tracks execution output, test results, and task completion across the b
   ```
 - **Assertions:** Valid tenant IDs match pattern, SQL/Cypher injections rejected with `InvalidInputError`, graph name mapped to `mem_<tenant>`, `now()` frozen by `CLOCK_NOW`, `max_inflight` bounded by semaphore.
 - **Status:** DONE
+
+---
+
+## T3. Embedder
+
+- **Commits:**
+  - `feat(core): tokenizer, stemmer and mock embedder`
+  - `feat(core): gemini embedder behind EMBED_PROVIDER`
+  - `test(core): embedder and cosine tests`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_embedder.py
+  ============================== 5 passed in 0.67s ===============================
+  ```
+- **Assertions:** Spec stem rules asserted; tokens("INV-1042") produces ["inv", "1042"]; mock embeddings unit length; G2 cosine similarities verified (ep-p1 ≈ 0.555, ep-p3 ≈ 0.267, ep-p2 == 0.0); embedder factory verified for mock and Gemini.
+- **Status:** DONE
