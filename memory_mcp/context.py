@@ -21,7 +21,7 @@ async def validate_context(
     """Validate invocation context and agent permissions, returning the agent's verified role."""
     # 1. Tenant validation: syntax and configured tenant allowlist
     valid_tenant = validate_tenant_id(tenant_id)
-    if valid_tenant not in settings.tenants_list:
+    if valid_tenant not in settings.get_allowed_tenants():
         raise InvalidInputError(f"Tenant '{valid_tenant}' is not among configured tenants")
 
     db: TenantDB = await get_tenant_db(valid_tenant)
