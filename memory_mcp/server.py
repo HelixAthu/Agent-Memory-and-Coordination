@@ -33,8 +33,10 @@ from memory_core.coordination import (
 from memory_core.coordination import (
     create_task as core_create_task,
 )
+from memory_core.db import get_tenant_db
 from memory_core.errors import ConflictError, MemoryError
 from memory_core.procedural import find_procedures, record_outcome
+from memory_core.queries import Q_PROC_STATS
 from memory_core.recall import recall
 from memory_core.semantic import get_history, get_profile
 from memory_core.semantic import remember_fact as core_remember_fact
@@ -271,7 +273,7 @@ async def get_shared_state(
         await validate_context(
             tenant_id, user_id, agent_id, session_id, tool_name="get_shared_state"
         )
-        state_data = await get_state(tenant_id, key)
+        state_data = await get_state(tenant_id, session_id, key)
         return make_success_envelope(
             data=state_data,
             visit_kind="state",
@@ -355,14 +357,26 @@ async def record_procedure_outcome(
         await validate_context(
             tenant_id, user_id, agent_id, session_id, tool_name="record_procedure_outcome"
         )
-        res = await record_outcome(
+        await record_outcome(
             tenant_id=tenant_id,
             session_id=session_id,
             procedure_id=procedure_id,
             outcome=outcome,
         )
+        db = await get_tenant_db(tenant_id)
+        stats = await db.run_ro(Q_PROC_STATS, {"pid": procedure_id})
+        successes = int(stats[0][1] or 0) if stats else 0
+        failures = int(stats[0][2] or 0) if stats else 0
+        success_users = int(stats[0][3] or 0) if stats else 0
+        data = {
+            "procedure_id": procedure_id,
+            "outcome": outcome,
+            "successes": successes,
+            "failures": failures,
+            "success_users": success_users,
+        }
         return make_success_envelope(
-            data=res,
+            data=data,
             visit_kind="write",
             node_ids=[procedure_id],
             edge_keys=[],
@@ -393,7 +407,26 @@ async def route_to_specialist(
         await validate_context(
             tenant_id, user_id, agent_id, session_id, tool_name="route_to_specialist"
         )
-        candidates = await route(tenant_id=tenant_id, topic_id=topic_id)
+        candidate_ids = await route(tenant_id=tenant_id, topic_id=topic_id)
+        db = await get_tenant_db(tenant_id)
+        candidates: list[dict[str, Any]] = []
+        for aid in candidate_ids:
+            agent_info = await db.run_ro(
+                "MATCH (a:Agent {id: $aid}) "
+                "OPTIONAL MATCH (t:Task) WHERE t.status = 'CLAIMED' AND t.claimed_by = a.id "
+                "RETURN a.id, a.name, count(t)",
+                {"aid": aid},
+            )
+            if agent_info:
+                candidates.append(
+                    {
+                        "id": str(agent_info[0][0]),
+                        "name": str(agent_info[0][1]),
+                        "load": int(agent_info[0][2]),
+                    }
+                )
+            else:
+                candidates.append({"id": aid, "name": aid, "load": 0})
         data = {"candidates": candidates}
         return make_success_envelope(
             data=data,
@@ -472,8 +505,13 @@ async def accept_handoff(
             handoff_id=handoff_id,
             agent_id=agent_id,
         )
+        data = {
+            "handoff_id": res["handoff_id"],
+            "status": "ACCEPTED",
+            "bundle": res["bundle"],
+        }
         return make_success_envelope(
-            data=res,
+            data=data,
             visit_kind="handoff",
             node_ids=[res["handoff_id"]],
             edge_keys=[],
@@ -506,7 +544,7 @@ async def complete_handoff(
         await validate_context(
             tenant_id, user_id, agent_id, session_id, tool_name="complete_handoff"
         )
-        res = await core_complete_handoff(
+        await core_complete_handoff(
             tenant_id=tenant_id,
             handoff_id=handoff_id,
             agent_id=agent_id,
@@ -514,9 +552,9 @@ async def complete_handoff(
             summary=summary,
         )
         return make_success_envelope(
-            data=res,
+            data={"handoff_id": handoff_id, "status": "COMPLETED"},
             visit_kind="handoff",
-            node_ids=[res["handoff_id"]],
+            node_ids=[handoff_id],
             edge_keys=[],
             query_ids=["Q-HANDOFF-COMPLETE"],
             tenant_id=tenant_id,
@@ -626,15 +664,15 @@ async def complete_task(
         await validate_context(
             tenant_id, user_id, agent_id, session_id, tool_name="complete_task"
         )
-        res = await core_complete_task(
+        await core_complete_task(
             tenant_id=tenant_id,
             task_id=task_id,
             agent_id=agent_id,
         )
         return make_success_envelope(
-            data={"task_id": res["task_id"], "status": "DONE"},
+            data={"task_id": task_id, "status": "DONE"},
             visit_kind="task",
-            node_ids=[res["task_id"]],
+            node_ids=[task_id],
             edge_keys=[],
             query_ids=["Q-TASK-COMPLETE"],
             tenant_id=tenant_id,
@@ -665,14 +703,16 @@ async def set_shared_state(
         await validate_context(
             tenant_id, user_id, agent_id, session_id, tool_name="set_shared_state"
         )
-        res = await set_state(
+        new_version = await set_state(
             tenant_id=tenant_id,
+            session_id=session_id,
             key=key,
             value=value,
             expected_version=expected_version,
+            agent_id=agent_id,
         )
         return make_success_envelope(
-            data={"key": res["key"], "version": res["version"]},
+            data={"key": key, "version": new_version},
             visit_kind="state",
             node_ids=[f"state-{key}"],
             edge_keys=[],

@@ -198,6 +198,28 @@ This log tracks execution output, test results, and task completion across the b
 - **Tag:** `v0.2-memory`
 - **Status:** DONE
 
+---
+
+## T9. MCP Server
+
+- **Commits:**
+  - `feat(mcp): server skeleton, context checks and envelope`
+  - `feat(mcp): memory read tools`
+  - `feat(mcp): memory write and coordination tools`
+  - `feat(mcp): role allowlists and server-side enforcement`
+  - `test(mcp): tool contracts, schema simplicity and isolation G13`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_mcp_tools.py tests/test_schema_simple.py tests/test_isolation.py
+  ============================== 9 passed in 5.61s ===============================
+  ```
+- **Assertions:**
+  - MCP server exposes all 16 memory and coordination tools with standardized envelopes.
+  - Every tool description includes "Use when:" and "Do not use when:".
+  - Schema simplifier removes context fields, inlines `$ref`, flattens `anyOf [X, null]`, and passes `assert_simple_schema`.
+  - G13 verified: agent-triage calling `accept_handoff` yields FORBIDDEN; malicious tenant IDs yield INVALID_INPUT; session ownership mismatch yields FORBIDDEN; Rahul recall never returns Priya data.
+  - 20 parallel `recall_memory` calls over a single stdio MCP session all succeed.
+- **Status:** DONE
 
 
 

@@ -11,6 +11,7 @@ import time
 from typing import Any
 
 from falkordb import FalkorDB
+
 try:
     from falkordb.asyncio import FalkorDB as AsyncFalkorDB
     HAS_ASYNC_CLIENT = True
