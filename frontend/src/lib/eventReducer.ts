@@ -77,6 +77,10 @@ export function createInitialMemoryState(): MemoryState {
 }
 
 export function reduceMemoryEvent(state: MemoryState, event: any): MemoryState {
+  if (event.type === "reset") {
+    return createInitialMemoryState();
+  }
+
   const traces = [...state.traces, event];
   const type = event.type;
   const data = event.data || {};

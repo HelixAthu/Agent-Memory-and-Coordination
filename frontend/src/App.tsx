@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useReducer } from "react";
+import { useState, useEffect, useCallback, useReducer, useRef } from "react";
 import { GraphNode, GraphEdge } from "./types";
-import { fetchUserGraph, createSession, postMessage, resetDemoData } from "./lib/api";
+import { fetchUserGraph, createSession, postMessage, resetDemoData, fetchReplay } from "./lib/api";
 import { MemoryGraph } from "./components/MemoryGraph";
 import { ChatPanel } from "./components/panels/ChatPanel";
 import { TraceFeed } from "./components/panels/TraceFeed";
@@ -18,6 +18,13 @@ export function App(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [activeScenario, setActiveScenario] = useState<string | null>(null);
+
+  // Replay mode state
+  const [isReplayMode, setIsReplayMode] = useState<boolean>(false);
+  const [replayScenario, setReplayScenario] = useState<string>("continuity");
+  const [replayRunning, setReplayRunning] = useState<boolean>(false);
+  const [replayProgress, setReplayProgress] = useState<{ current: number; total: number } | null>(null);
+  const replayTimerRef = useRef<number | null>(null);
 
   // Event-driven state using pure reducer
   const [memoryState, dispatchMemoryEvent] = useReducer(
@@ -103,6 +110,56 @@ export function App(): JSX.Element {
       await loadGraph(tenant, userId);
     } catch (err: any) {
       setError(err.message || "Reset failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stopReplay = useCallback(() => {
+    if (replayTimerRef.current !== null) {
+      window.clearInterval(replayTimerRef.current);
+      replayTimerRef.current = null;
+    }
+    setReplayRunning(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (replayTimerRef.current !== null) {
+        window.clearInterval(replayTimerRef.current);
+      }
+    };
+  }, []);
+
+  const startReplay = async (scenarioName = replayScenario) => {
+    stopReplay();
+    try {
+      setLoading(true);
+      setError(null);
+      const events = await fetchReplay(scenarioName);
+      if (!events || events.length === 0) {
+        setError(`No events found for replay '${scenarioName}'`);
+        return;
+      }
+
+      dispatchMemoryEvent({ type: "reset" });
+      setReplayRunning(true);
+      setReplayProgress({ current: 0, total: events.length });
+
+      let idx = 0;
+      replayTimerRef.current = window.setInterval(() => {
+        if (idx < events.length) {
+          const evt = events[idx];
+          dispatchMemoryEvent(evt);
+          idx++;
+          setReplayProgress({ current: idx, total: events.length });
+        } else {
+          stopReplay();
+        }
+      }, 600);
+    } catch (err: any) {
+      setError(err.message || "Failed to load replay");
+      stopReplay();
     } finally {
       setLoading(false);
     }
@@ -210,50 +267,122 @@ export function App(): JSX.Element {
       <div className="flex flex-1 w-full overflow-hidden">
         {/* Left Column (w-96) */}
         <aside className="w-96 flex flex-col border-r border-border bg-slate-900/40 shrink-0 overflow-hidden">
-          {/* Scenario Trigger Buttons */}
+          {/* Scenario / Replay Controls */}
           <div className="p-3 border-b border-border bg-slate-900/80 space-y-2 shrink-0">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Demo Scenarios
+                {isReplayMode ? "Replay Mode (Headless)" : "Demo Scenarios (Live SSE)"}
               </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 text-[10px] text-rose-400 hover:text-rose-300"
-                onClick={handleReset}
-              >
-                Reset Demo Data
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant={isReplayMode ? "secondary" : "outline"}
+                  size="sm"
+                  className="h-6 text-[10px] px-2"
+                  onClick={() => {
+                    stopReplay();
+                    setIsReplayMode(!isReplayMode);
+                  }}
+                >
+                  {isReplayMode ? "● Replay" : "○ Replay"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[10px] text-rose-400 hover:text-rose-300 px-1.5"
+                  onClick={handleReset}
+                >
+                  Reset
+                </Button>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-1.5">
-              <Button
-                variant={activeScenario === "continuity" ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-[11px] px-1 truncate"
-                onClick={() => runScenario("continuity")}
-                disabled={isStreaming}
-              >
-                Continuity
-              </Button>
-              <Button
-                variant={activeScenario === "fact_update" ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-[11px] px-1 truncate"
-                onClick={() => runScenario("fact_update")}
-                disabled={isStreaming}
-              >
-                Fact Update
-              </Button>
-              <Button
-                variant={activeScenario === "procedure_learning" ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-[11px] px-1 truncate"
-                onClick={() => runScenario("procedure_learning")}
-                disabled={isStreaming}
-              >
-                Procedure
-              </Button>
-            </div>
+
+            {isReplayMode ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-1.5">
+                  <Button
+                    variant={replayScenario === "continuity" ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-[11px] px-1 truncate"
+                    onClick={() => {
+                      stopReplay();
+                      setReplayScenario("continuity");
+                    }}
+                    disabled={replayRunning}
+                  >
+                    Continuity
+                  </Button>
+                  <Button
+                    variant={replayScenario === "fact_update" ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-[11px] px-1 truncate"
+                    onClick={() => {
+                      stopReplay();
+                      setReplayScenario("fact_update");
+                    }}
+                    disabled={replayRunning}
+                  >
+                    Fact Update
+                  </Button>
+                  <Button
+                    variant={replayScenario === "procedure_learning" ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-[11px] px-1 truncate"
+                    onClick={() => {
+                      stopReplay();
+                      setReplayScenario("procedure_learning");
+                    }}
+                    disabled={replayRunning}
+                  >
+                    Procedure
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <Button
+                    variant={replayRunning ? "destructive" : "default"}
+                    size="sm"
+                    className="h-7 text-xs flex-1"
+                    onClick={() => (replayRunning ? stopReplay() : startReplay(replayScenario))}
+                  >
+                    {replayRunning ? "■ Stop Replay" : "▶ Play Replay (600ms)"}
+                  </Button>
+                  {replayProgress && (
+                    <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap">
+                      {replayProgress.current} / {replayProgress.total}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5">
+                <Button
+                  variant={activeScenario === "continuity" ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-[11px] px-1 truncate"
+                  onClick={() => runScenario("continuity")}
+                  disabled={isStreaming}
+                >
+                  Continuity
+                </Button>
+                <Button
+                  variant={activeScenario === "fact_update" ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-[11px] px-1 truncate"
+                  onClick={() => runScenario("fact_update")}
+                  disabled={isStreaming}
+                >
+                  Fact Update
+                </Button>
+                <Button
+                  variant={activeScenario === "procedure_learning" ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-[11px] px-1 truncate"
+                  onClick={() => runScenario("procedure_learning")}
+                  disabled={isStreaming}
+                >
+                  Procedure
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Top Half: Chat Panel */}

@@ -144,3 +144,14 @@ export async function runAdminLoadTest(scaleDown = false): Promise<any> {
   if (!res.ok) throw new Error(`Load test failed: ${res.statusText}`);
   return res.json();
 }
+
+export async function fetchReplay(scenario: string): Promise<any[]> {
+  const res = await fetch(`/replays/${scenario}`);
+  if (!res.ok) throw new Error(`Failed to load replay '${scenario}': ${res.statusText}`);
+  const text = await res.text();
+  return text
+    .trim()
+    .split("\n")
+    .filter((line) => line.trim().length > 0)
+    .map((line) => JSON.parse(line));
+}
