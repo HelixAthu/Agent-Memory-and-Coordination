@@ -1,0 +1,65 @@
+# Evaluation Scenarios Specification
+# Maps scenario configurations to expected golden invariants and metrics
+
+scenarios:
+  continuity:
+    tenant: "acme"
+    user: "user-priya"
+    description: "Multi-turn billing continuity with specialist handoff"
+    expected:
+      recall_top1: "ep-p1"
+      handoff_target: "agent-billing"
+      carried_items: 8
+      handoff_status: "COMPLETED"
+      final_episode: "ep-sess-demo-continuity"
+      episode_importance: 0.8
+      tools_called:
+        - "recall_memory"
+        - "create_handoff"
+        - "accept_handoff"
+        - "find_procedure"
+        - "record_procedure_outcome"
+        - "close_session"
+
+  fact_update:
+    tenant: "acme"
+    user: "user-priya"
+    description: "User profile change with fact supersession"
+    expected:
+      superseded_facts:
+        - "fact-p-city"
+        - "fact-p-channel"
+      new_active_facts:
+        city: "Pune"
+        prefers_channel: "chat"
+      history_length:
+        prefers_channel: 3
+        city: 2
+
+  procedure_learning:
+    tenant: "acme"
+    user: "user-rahul"
+    description: "Candidate procedure promotion via repeated successful usage"
+    expected:
+      promoted_procedure: "proc-vpn-token-reset"
+      initial_status: "CANDIDATE"
+      final_status: "ACTIVE"
+      distinct_users: 2
+      successes: 2
+
+  isolation:
+    tenant: "acme"
+    description: "Tenant and user boundary enforcement"
+    expected:
+      cross_tenant_leaks: 0
+      cross_user_leaks: 0
+      invalid_tenant_rejected: true
+      unauthorized_api_key_status: 403
+
+  tool_allowlist:
+    tenant: "acme"
+    description: "Server-side role allowlist enforcement"
+    expected:
+      disallowed_call_status: "FORBIDDEN"
+      triage_cannot_accept_handoff: true
+      triage_cannot_claim_task: true
