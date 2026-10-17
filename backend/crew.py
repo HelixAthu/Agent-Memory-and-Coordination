@@ -24,9 +24,11 @@ async def run_agent(
     ctx: MemoryContext,
     user_text: str,
     bus: EventBus,
+    mode: str | None = None,
 ) -> AgentTurnResult:
     """Dispatch agent turn to live Gemini loop or scripted mock runner."""
-    if settings.agent_mode == "live":
+    active_mode = mode or settings.agent_mode
+    if active_mode == "live":
         from backend.agent_live import run_agent_turn
 
         role = "triage" if "triage" in ctx.agent_id else "specialist"
@@ -48,6 +50,7 @@ async def run_turn(
     ctx: MemoryContext,
     user_text: str,
     bus: EventBus | None = None,
+    mode: str | None = None,
 ) -> EventBus:
     """Run a multi-agent user turn with automatic handoff chaining up to 2 hops.
 
@@ -82,7 +85,7 @@ async def run_turn(
     await event_bus.emit("agent_active", {"agent_id": agent, "role": role})
 
     # 4. Run agent turn
-    result = await run_agent(ctx.with_agent(agent), user_text, event_bus)
+    result = await run_agent(ctx.with_agent(agent), user_text, event_bus, mode=mode)
 
     # 5. Handoff chaining: up to 2 hops
     hops = 0
@@ -101,6 +104,7 @@ async def run_turn(
             ctx.with_agent(target),
             "A handoff is waiting for you. Start with get_pending_handoffs.",
             event_bus,
+            mode=mode,
         )
 
     await event_bus.emit(

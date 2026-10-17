@@ -20,9 +20,15 @@ interface MemoryTabsProps {
   tenant: string;
   userId: string;
   onSelectNode?: (nodeId: string) => void;
+  refreshKey?: number;
 }
 
-export function MemoryTabs({ tenant, userId, onSelectNode }: MemoryTabsProps): JSX.Element {
+export function MemoryTabs({
+  tenant,
+  userId,
+  onSelectNode,
+  refreshKey,
+}: MemoryTabsProps): JSX.Element {
   const [activeTab, setActiveTab] = useState<string>("episodic");
 
   // Tab Data States
@@ -66,7 +72,7 @@ export function MemoryTabs({ tenant, userId, onSelectNode }: MemoryTabsProps): J
     return () => {
       isCurrent = false;
     };
-  }, [tenant, userId, activeTab, showHistory]);
+  }, [tenant, userId, activeTab, showHistory, refreshKey]);
 
   const formatDate = (epochSec: number) => {
     if (!epochSec) return "Aug 2026";

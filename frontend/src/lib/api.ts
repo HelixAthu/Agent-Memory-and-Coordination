@@ -83,15 +83,26 @@ export async function checkIsolation(tenantId: string): Promise<any> {
   return res.json();
 }
 
+export async function fetchTenantUsers(
+  tenantId: string
+): Promise<{ id: string; name: string; role?: string }[]> {
+  const res = await fetch(`/t/${tenantId}/users`, {
+    headers: getHeaders(tenantId),
+  });
+  if (!res.ok) throw new Error(`Failed to fetch users: ${res.statusText}`);
+  return res.json();
+}
+
 export async function createSession(
   tenantId: string,
   userId: string,
-  scenario?: string
+  scenario?: string,
+  mode?: "mock" | "live"
 ): Promise<{ session_id: string }> {
   const res = await fetch(`/t/${tenantId}/sessions`, {
     method: "POST",
     headers: getHeaders(tenantId),
-    body: JSON.stringify({ user_id: userId, scenario }),
+    body: JSON.stringify({ user_id: userId, scenario, mode }),
   });
   if (!res.ok) throw new Error(`Failed to create session: ${res.statusText}`);
   return res.json();
@@ -101,14 +112,36 @@ export async function postMessage(
   tenantId: string,
   sessionId: string,
   role: string,
-  text: string
+  text: string,
+  mode?: "mock" | "live"
 ): Promise<{ turn_id: string }> {
   const res = await fetch(`/t/${tenantId}/sessions/${sessionId}/messages`, {
     method: "POST",
     headers: getHeaders(tenantId),
-    body: JSON.stringify({ role, text }),
+    body: JSON.stringify({ role, text, mode }),
   });
   if (!res.ok) throw new Error(`Failed to post message: ${res.statusText}`);
+  return res.json();
+}
+
+export async function updateAgentMode(mode: "mock" | "live"): Promise<any> {
+  const res = await fetch("/config/mode", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode }),
+  });
+  if (!res.ok) throw new Error(`Failed to update mode: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchConfig(): Promise<{
+  agent_mode: string;
+  llm_provider: string;
+  gemini_model: string;
+  has_gemini_key: boolean;
+}> {
+  const res = await fetch("/config");
+  if (!res.ok) throw new Error(`Failed to fetch config: ${res.statusText}`);
   return res.json();
 }
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 from dataclasses import asdict
 from pathlib import Path
@@ -43,6 +44,7 @@ app.add_middleware(
 )
 
 SESSION_BUSES: dict[str, EventBus] = {}
+SESSION_MODES: dict[str, str] = {}
 
 
 def get_session_bus(sid: str) -> EventBus:
@@ -55,10 +57,16 @@ def get_session_bus(sid: str) -> EventBus:
 class CreateSessionRequest(BaseModel):
     user_id: str
     scenario: str | None = None
+    mode: str | None = None
 
 
 class SendMessageRequest(BaseModel):
     text: str
+    mode: str | None = None
+
+
+class ModeUpdateRequest(BaseModel):
+    mode: str
 
 
 class CloseSessionRequest(BaseModel):
@@ -80,6 +88,29 @@ async def health() -> dict[str, Any]:
         "ok": True,
         "tenants": settings.get_allowed_tenants(),
     }
+
+
+@app.get("/config")
+async def get_config() -> dict[str, Any]:
+    """Retrieve runtime configuration status."""
+    return {
+        "agent_mode": settings.agent_mode,
+        "llm_provider": settings.llm_provider,
+        "gemini_model": settings.gemini_model,
+        "has_gemini_key": bool(settings.gemini_api_key or os.getenv("GEMINI_API_KEY")),
+    }
+
+
+@app.post("/config/mode")
+async def update_mode(req: ModeUpdateRequest) -> dict[str, Any]:
+    """Update active runtime agent mode (mock or live)."""
+    if req.mode not in ("mock", "live"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mode must be either 'mock' or 'live'",
+        )
+    settings.agent_mode = req.mode
+    return {"ok": True, "agent_mode": settings.agent_mode}
 
 
 @app.get("/t/{tenant}/users")
@@ -117,11 +148,15 @@ async def create_session_endpoint(
             )
         sc = SCENARIOS[req.scenario]
         sid = sc.session_id
+        if req.mode:
+            SESSION_MODES[sid] = req.mode
         bus = get_session_bus(sid)
         asyncio.create_task(run_mock_scenario(req.scenario, bus=bus))
         return {"session_id": sid}
 
     sid = f"sess-{uuid.uuid4().hex[:8]}"
+    if req.mode:
+        SESSION_MODES[sid] = req.mode
     await create_session(tenant, req.user_id, current_agent="agent-triage", session_id=sid)
     get_session_bus(sid)
     return {"session_id": sid}
@@ -151,7 +186,8 @@ async def send_message_endpoint(
     bus = get_session_bus(sid)
 
     turn_id = f"turn-{uuid.uuid4().hex[:8]}"
-    asyncio.create_task(run_turn(ctx, req.text, bus=bus))
+    active_mode = req.mode or SESSION_MODES.get(sid, settings.agent_mode)
+    asyncio.create_task(run_turn(ctx, req.text, bus=bus, mode=active_mode))
     return {"turn_id": turn_id}
 
 

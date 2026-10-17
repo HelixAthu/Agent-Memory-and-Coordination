@@ -17,6 +17,7 @@ interface ChatPanelProps {
   onSendMessage: (text: string) => void;
   isStreaming?: boolean;
   agentMode?: "mock" | "live";
+  onModeChange?: (mode: "mock" | "live") => void;
 }
 
 export function ChatPanel({
@@ -24,6 +25,7 @@ export function ChatPanel({
   onSendMessage,
   isStreaming = false,
   agentMode = "mock",
+  onModeChange,
 }: ChatPanelProps): JSX.Element {
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -36,7 +38,7 @@ export function ChatPanel({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || isStreaming || agentMode === "mock") return;
+    if (!inputText.trim() || isStreaming) return;
     onSendMessage(inputText.trim());
     setInputText("");
   };
@@ -59,15 +61,56 @@ export function ChatPanel({
             Conversation
           </span>
         </div>
-        <Badge variant="outline" className="text-[10px] font-mono">
-          {messages.length} msgs
-        </Badge>
+        <div className="flex items-center gap-1.5">
+          {onModeChange ? (
+            <div className="flex items-center bg-slate-950/80 rounded p-0.5 border border-slate-800 text-[10px]">
+              <button
+                type="button"
+                className={`px-1.5 py-0.5 rounded transition-colors ${
+                  agentMode === "mock"
+                    ? "bg-slate-800 text-slate-100 font-medium"
+                    : "text-muted-foreground hover:text-slate-200"
+                }`}
+                onClick={() => onModeChange("mock")}
+              >
+                Mock
+              </button>
+              <button
+                type="button"
+                className={`px-1.5 py-0.5 rounded transition-colors ${
+                  agentMode === "live"
+                    ? "bg-amber-950 text-amber-200 border border-amber-700/50 font-medium"
+                    : "text-muted-foreground hover:text-amber-200"
+                }`}
+                onClick={() => onModeChange("live")}
+              >
+                Gemini
+              </button>
+            </div>
+          ) : (
+            <Badge
+              variant="secondary"
+              className={`text-[10px] ${
+                agentMode === "live"
+                  ? "bg-amber-950/80 text-amber-300 border-amber-700/50"
+                  : "bg-slate-800 text-slate-300"
+              }`}
+            >
+              {agentMode === "live" ? "✨ Gemini" : "🤖 Mock"}
+            </Badge>
+          )}
+          <Badge variant="outline" className="text-[10px] font-mono">
+            {messages.length} msgs
+          </Badge>
+        </div>
       </div>
 
       {/* Messages List */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center text-xs text-muted-foreground p-4">
+          <div
+            className="flex h-full flex-col items-center justify-center text-center text-xs text-muted-foreground p-4"
+          >
             <Bot className="h-8 w-8 mb-2 opacity-30 text-blue-400" />
             <p>No messages in session.</p>
             <p className="text-[11px] mt-1 text-slate-500">
@@ -121,19 +164,19 @@ export function ChatPanel({
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder={
-            agentMode === "mock"
-              ? "Pick a scenario (mock mode)"
-              : isStreaming
+            isStreaming
               ? "Agent responding..."
-              : "Type a customer message..."
+              : agentMode === "live"
+              ? "Ask anything (Gemini Live LLM)..."
+              : "Type a customer message (Mock Engine)..."
           }
-          disabled={agentMode === "mock" || isStreaming}
+          disabled={isStreaming}
           className="h-8 text-xs bg-slate-950/80 border-slate-800 focus-visible:ring-1"
         />
         <Button
           type="submit"
           size="sm"
-          disabled={agentMode === "mock" || isStreaming || !inputText.trim()}
+          disabled={isStreaming || !inputText.trim()}
           className="h-8 px-2.5 text-xs"
         >
           <Send className="h-3.5 w-3.5" />
