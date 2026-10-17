@@ -126,7 +126,10 @@ export async function fetchSessionMessages(
 export async function resetDemoData(): Promise<any> {
   const res = await fetch("/admin/reset", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Admin-Key": "admin-demo-key",
+    },
   });
   if (!res.ok) throw new Error(`Failed to reset data: ${res.statusText}`);
   return res.json();

@@ -563,6 +563,17 @@ async def admin_reset(
     return {"ok": True, "reset_tenants": tenants}
 
 
+@app.post("/admin/loadtest")
+async def admin_loadtest(
+    scale_down: bool = Query(default=True),
+) -> dict[str, Any]:
+    """Execute concurrency load test suite and return real latency and invariant checks."""
+    from memory_core.loadtest import run_all
+
+    res = await run_all(scale_down=scale_down)
+    return res
+
+
 @app.get("/replays/{scenario}")
 async def get_replay(scenario: str) -> FileResponse:
     """Serve recorded headless scenario execution replay."""

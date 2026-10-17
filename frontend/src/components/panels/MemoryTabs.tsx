@@ -14,6 +14,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { fetchEpisodes, fetchFacts, fetchProcedures, fetchTasks, fetchHandoffs } from "../../lib/api";
 import { Episode, Fact, Procedure, Task, Handoff } from "../../types";
+import { ProofPanel } from "./ProofPanel";
 
 interface MemoryTabsProps {
   tenant: string;
@@ -78,18 +79,21 @@ export function MemoryTabs({ tenant, userId, onSelectNode }: MemoryTabsProps): J
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
         {/* Tab Headers */}
         <div className="border-b border-border bg-slate-900/80 px-2 py-1.5 shrink-0">
-          <TabsList className="grid grid-cols-4 h-8 bg-slate-950/70 p-0.5">
-            <TabsTrigger value="episodic" className="text-[11px] px-1.5 data-[state=active]:bg-blue-950/80 data-[state=active]:text-blue-300">
+          <TabsList className="grid grid-cols-5 h-8 bg-slate-950/70 p-0.5">
+            <TabsTrigger value="episodic" className="text-[11px] px-1 data-[state=active]:bg-blue-950/80 data-[state=active]:text-blue-300">
               Episodic
             </TabsTrigger>
-            <TabsTrigger value="semantic" className="text-[11px] px-1.5 data-[state=active]:bg-emerald-950/80 data-[state=active]:text-emerald-300">
+            <TabsTrigger value="semantic" className="text-[11px] px-1 data-[state=active]:bg-emerald-950/80 data-[state=active]:text-emerald-300">
               Semantic
             </TabsTrigger>
-            <TabsTrigger value="procedural" className="text-[11px] px-1.5 data-[state=active]:bg-purple-950/80 data-[state=active]:text-purple-300">
+            <TabsTrigger value="procedural" className="text-[11px] px-1 data-[state=active]:bg-purple-950/80 data-[state=active]:text-purple-300">
               Procedural
             </TabsTrigger>
-            <TabsTrigger value="coordination" className="text-[11px] px-1.5 data-[state=active]:bg-amber-950/80 data-[state=active]:text-amber-300">
+            <TabsTrigger value="coordination" className="text-[11px] px-1 data-[state=active]:bg-amber-950/80 data-[state=active]:text-amber-300">
               Coord
+            </TabsTrigger>
+            <TabsTrigger value="proof" className="text-[11px] px-1 data-[state=active]:bg-rose-950/80 data-[state=active]:text-rose-300">
+              Proof
             </TabsTrigger>
           </TabsList>
         </div>
@@ -400,6 +404,11 @@ export function MemoryTabs({ tenant, userId, onSelectNode }: MemoryTabsProps): J
                 ))}
               </div>
             </div>
+          </TabsContent>
+
+          {/* 5. Proof Tab */}
+          <TabsContent value="proof" className="m-0 space-y-3">
+            <ProofPanel tenant={tenant} />
           </TabsContent>
         </div>
       </Tabs>
