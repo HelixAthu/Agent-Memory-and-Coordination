@@ -4,6 +4,7 @@ import { fetchUserGraph, createSession, postMessage, resetDemoData } from "./lib
 import { MemoryGraph } from "./components/MemoryGraph";
 import { ChatPanel } from "./components/panels/ChatPanel";
 import { TraceFeed } from "./components/panels/TraceFeed";
+import { MemoryTabs } from "./components/panels/MemoryTabs";
 import { Button } from "./components/ui/button";
 import { Badge } from "./components/ui/badge";
 import { useMemoryStream } from "./hooks/useMemoryStream";
@@ -287,6 +288,14 @@ export function App(): JSX.Element {
             isLoading={loading}
           />
         </main>
+
+        {/* Right Column (w-96): Memory Tabs */}
+        <aside className="w-96 flex flex-col border-l border-border bg-slate-900/40 shrink-0 overflow-hidden">
+          <MemoryTabs
+            tenant={tenant}
+            userId={userId}
+          />
+        </aside>
       </div>
     </div>
   );
