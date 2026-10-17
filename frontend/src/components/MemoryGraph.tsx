@@ -11,12 +11,13 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { GraphNode, GraphEdge } from "../types";
-import { layoutGraph } from "../lib/layout";
+import { layoutGraph, GraphHighlightState } from "../lib/layout";
 import { nodeTypes } from "./canvas/nodeTypes";
 
 interface MemoryGraphProps {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  highlight?: GraphHighlightState;
   onNodeClick?: (event: MouseEvent, node: any) => void;
   isLoading?: boolean;
 }
@@ -24,10 +25,14 @@ interface MemoryGraphProps {
 export function MemoryGraph({
   nodes,
   edges,
+  highlight,
   onNodeClick,
   isLoading,
 }: MemoryGraphProps): JSX.Element {
-  const layout = useMemo(() => layoutGraph(nodes, edges), [nodes, edges]);
+  const layout = useMemo(
+    () => layoutGraph(nodes, edges, highlight),
+    [nodes, edges, highlight]
+  );
 
   const [flowNodes, setNodes, onNodesChange] = useNodesState(layout.nodes);
   const [flowEdges, setEdges, onEdgesChange] = useEdgesState(layout.edges);

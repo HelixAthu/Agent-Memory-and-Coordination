@@ -276,6 +276,14 @@ export function App(): JSX.Element {
           <MemoryGraph
             nodes={allNodes}
             edges={allEdges}
+            highlight={{
+              visitedNodeIds: memoryState.visitedNodeIds,
+              visitedEdgeKeys: memoryState.visitedEdgeKeys,
+              recallEpisodes: memoryState.lastRecall?.episodes,
+              promotedProcedureId: memoryState.lastProcedureEvent?.kind === "promoted"
+                ? memoryState.lastProcedureEvent.procedure_id
+                : null,
+            }}
             isLoading={loading}
           />
         </main>

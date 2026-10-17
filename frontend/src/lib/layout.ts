@@ -7,6 +7,13 @@ export const NODE_HEIGHT = 70;
 export const RANK_SEP = 70;
 export const NODE_SEP = 30;
 
+export interface GraphHighlightState {
+  visitedNodeIds?: string[];
+  visitedEdgeKeys?: string[];
+  recallEpisodes?: Array<{ id: string; score: number }>;
+  promotedProcedureId?: string | null;
+}
+
 export function getNodeRank(label: string): number {
   switch (label) {
     case "User":
@@ -31,7 +38,8 @@ export function getNodeRank(label: string): number {
 
 export function layoutGraph(
   nodes: GraphNode[],
-  edges: GraphEdge[]
+  edges: GraphEdge[],
+  highlight?: GraphHighlightState
 ): { nodes: FlowNode[]; edges: FlowEdge[] } {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setGraph({
@@ -55,6 +63,13 @@ export function layoutGraph(
 
   dagre.layout(dagreGraph);
 
+  const visitedSet = new Set(highlight?.visitedNodeIds || []);
+  const visitedEdgeSet = new Set(highlight?.visitedEdgeKeys || []);
+  const recallMap = new Map<string, number>();
+  for (const ep of highlight?.recallEpisodes || []) {
+    recallMap.set(ep.id, ep.score);
+  }
+
   const flowNodes: FlowNode[] = nodes.map((n) => {
     const nodeWithPos = dagreGraph.node(n.id);
     const x = nodeWithPos ? nodeWithPos.x - NODE_WIDTH / 2 : 0;
@@ -68,6 +83,10 @@ export function layoutGraph(
         id: n.id,
         label: n.label,
         props: n.props || {},
+        isVisited: visitedSet.has(n.id),
+        recallScore: recallMap.get(n.id) ?? null,
+        isPromoted: highlight?.promotedProcedureId === n.id,
+        isSuperseded: n.props?.status === "SUPERSEDED",
         ...n.data,
       },
     };
@@ -75,15 +94,44 @@ export function layoutGraph(
 
   const flowEdges: FlowEdge[] = edges.map((e) => {
     const edgeId = `${e.source}|${e.type}|${e.target}`;
+    const isVisited = visitedEdgeSet.has(edgeId) || visitedEdgeSet.has(e.type);
+    const isHandoff = e.type === "HANDOFF";
+    const isSupersedes = e.type === "SUPERSEDES";
+
+    let stroke = "#64748b";
+    let strokeWidth = 1.5;
+    let animated = e.animated ?? false;
+
+    if (isHandoff) {
+      stroke = "#ec4899";
+      strokeWidth = 2.5;
+      animated = true;
+    } else if (isSupersedes) {
+      stroke = "#ef4444";
+      strokeWidth = 2;
+    } else if (isVisited) {
+      stroke = "#a855f7";
+      strokeWidth = 2.5;
+      animated = true;
+    }
+
     return {
       id: edgeId,
       source: e.source,
       target: e.target,
       label: e.type,
-      animated: e.animated ?? false,
-      style: { stroke: "#64748b", strokeWidth: 1.5 },
-      labelStyle: { fill: "#94a3b8", fontSize: 10, fontWeight: 500 },
-      labelBgStyle: { fill: "#0f172a", fillOpacity: 0.8 },
+      animated,
+      style: {
+        stroke,
+        strokeWidth,
+        strokeDasharray: isSupersedes ? "4 2" : undefined,
+      },
+      labelStyle: {
+        fill: isHandoff ? "#f472b6" : isSupersedes ? "#f87171" : "#94a3b8",
+        fontSize: 10,
+        fontWeight: isHandoff || isSupersedes ? 600 : 500,
+      },
+      labelBgStyle: { fill: "#0f172a", fillOpacity: 0.85 },
     };
   });
 
