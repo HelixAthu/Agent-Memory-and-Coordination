@@ -259,4 +259,161 @@ This log tracks execution output, test results, and task completion across the b
   - Scripted mock agent runner executes all 3 core scenarios: continuity, fact_update, procedure_learning.
   - Goldens G2, G4, G8, G9, G10 verified end-to-end via event bus and tenant graph assertions.
   - Headless script generates replays for continuity, fact_update, and procedure_learning.
-- **Status:** IN PROGRESS (Commits 39-40 done)
+- **Status:** DONE
+
+---
+
+## T12. Live Agent Loop (Gemini)
+
+- **Commits:**
+  - `feat(agent): crew runner with handoff chaining`
+  - `feat(agent): live gemini turn loop and prompts`
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_agent_live.py
+  ============================== 5 passed in 0.81s ===============================
+  ```
+- **Assertions:**
+  - Turn loop enforces maximum 10-call tool cap and repeated tool call abort.
+  - Tool execution errors fed back to model with `is_error=True`.
+  - Handoff chaining initiates specialist turn automatically upon `create_handoff`.
+  - Specialized event emissions verified.
+  - *Note on Gemini Live Run:* Tested with stubbed and mock LLM clients; live Gemini execution skipped when `GEMINI_API_KEY` is unset.
+- **Status:** DONE
+
+---
+
+## T13. API Gateway & Realtime Streaming
+
+- **Commits:**
+  - `feat(api): tenant api keys and routes`
+  - `feat(api): sessions, messages and sse stream`
+  - `test(api): end to end scenario, 403 isolation and restart persistence` (Tag: `v0.3-agents`)
+- **Acceptance Output:**
+  ```bash
+  $ pytest tests/test_api.py
+  ============================== 6 passed in 2.14s ===============================
+  ```
+- **Assertions:**
+  - Tenant API key verification: `/t/acme/...` with acme key passes, globex returns 403.
+  - Server-Sent Events (SSE) stream emits real-time events for session turns.
+  - Admin endpoints (`/admin/reset`, `/admin/loadtest`) require `X-Admin-Key`.
+  - Durability across restart verified: sessions and messages persist cleanly.
+- **Status:** DONE
+
+---
+
+## T14. Concurrency Load Test & Invariants
+
+- **Commits:**
+  - `feat(load): concurrency load test and invariants`
+  - `docs: record load results`
+- **Acceptance Output:**
+  ```bash
+  $ python scripts/load_test.py
+  Total Operations: 1400 ops in 7.36s (190.2 ops/s)
+  C1 Single-task atomic claim exclusivity: PASS
+  C2 Multi-task work stealing via claim_next: PASS
+  C3 Shared state optimistic concurrency CAS: PASS
+  C4 Cross-tenant parallel load and partition isolation: PASS
+  C5 Mixed read/write load under graph mutations: PASS
+  ```
+- **Assertions:** Real load numbers recorded in `evals/load_results.md`.
+- **Status:** DONE
+
+---
+
+## T15. Frontend Scaffold & Graph Rendering
+
+- **Commits:**
+  - `chore(web): scaffold vite, tailwind and shadcn`
+  - `feat(web): tenant switcher and memory graph rendering`
+- **Acceptance Output:**
+  ```bash
+  $ npm run build && npx tsc --noEmit
+  ✓ built in 2.00s
+  ```
+- **Assertions:**
+  - React 18, Vite, Tailwind CSS, Lucide icons, and React Flow configured.
+  - Dagre LR hierarchy ranks User -> Sessions -> Episodes -> Facts/Procedures -> Entities -> Agents.
+  - Tenant switcher toggles between Acme and Globex graphs.
+- **Status:** DONE
+
+---
+
+## T16. Streaming UI, Tabs, Proof & Replay Mode
+
+- **Commits:**
+  - `feat(web): event reducer and sse hook with tests`
+  - `feat(web): chat panel and trace feed`
+  - `feat(web): graph highlighting for recall, supersession and handoff`
+  - `feat(web): memory tabs`
+  - `feat(web): proof tab for isolation and load test`
+  - `feat(web): replay mode` (Tag: `v0.4-ui`)
+- **Acceptance Output:**
+  ```bash
+  $ npx vitest run
+  ✓ src/__tests__/eventReducer.test.ts (4)
+    ✓ Memory Event Reducer
+      ✓ initializes clean memory state
+      ✓ processes replays/continuity.jsonl to exact acceptance criteria
+      ✓ processes replays/fact_update.jsonl to exact acceptance criteria
+      ✓ processes replays/procedure_learning.jsonl to exact acceptance criteria
+  Test Files 1 passed (1)
+  ```
+- **Assertions:**
+  - Pure event reducer processes all recorded headless replay files.
+  - Replay toggle loads scenarios and plays events at 600ms per event without backend session.
+  - Graph highlights recall glows, supersession transitions, handoff animations, and promotion badges.
+- **Status:** DONE
+
+---
+
+## T17. Evaluation Harness & Baselines
+
+- **Commits:**
+  - `feat(evals): scenario harness, ablation and results`
+- **Acceptance Output:**
+  ```bash
+  $ python evals/run_evals.py
+  [PASS] Memory Correctness: Top-1=ep-p1, Facts=3, Decayed=1
+  [PASS] Handoff Integrity: Carried=8/8, Exactly-1 accept (1 win, 9 conflicts)
+  [PASS] Tenant & User Isolation: 0 cross-tenant leaks, 0 cross-user leaks
+  [PASS] Concurrency Invariants: C1=True, C2=True, C3=True, C4=True, C5=True (ops/s: 270.6)
+  [PASS] Tool Selection & Allowlist: Called 10 expected tools, triage accept blocked with FORBIDDEN
+  [PASS] Persistence across Restart: Top-1 episode persisted as ep-sess-demo-continuity
+  [PASS] Latency (Recall & Query): p50: 50.70 ms, p95: 70.67 ms
+  ```
+- **Assertions:**
+  - `evals/scenarios.yaml`, `evals/run_evals.py`, `evals/ablation.py`, `evals/results.md` generated.
+  - 100% test pass on mock harness; ablation baseline handles missing API key gracefully.
+- **Status:** DONE
+
+---
+
+## T18. Documentation, CI & Full-Stack Compose
+
+- **Commits:**
+  - `docs: query reference with golden results`
+  - `docs: readme with graph model, memory types and ai disclosure`
+  - `chore: github actions ci`
+  - `chore: dockerfiles and full-stack compose`
+- **Acceptance Output:**
+  - GitHub Actions CI workflow in `.github/workflows/ci.yml` with FalkorDB service container.
+  - Full-stack `docker-compose.yml` with backend, frontend, and FalkorDB.
+  - Query reference in `docs/queries.md` with all Cypher queries documented.
+- **Status:** DONE
+
+---
+
+## T19. Owner Handoff & Release
+
+- **Commits:**
+  - `docs: explainer, owner questions and demo script`
+  - `docs: add demo video link` (Tag: `v1.0`)
+- **Acceptance Output:**
+  - Technical explainer in `docs/EXPLAINER.md` referencing real function names.
+  - 20 judge questions and model answers in `docs/OWNER_QUESTIONS.md`.
+  - 3-minute timed walkthrough script in `docs/demo_script.md`.
+- **Status:** DONE
+
