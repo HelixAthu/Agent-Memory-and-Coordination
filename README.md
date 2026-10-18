@@ -8,13 +8,6 @@
 
 ---
 
-## Demo Video & Walkthrough
-
-📺 **Watch the 3-Minute System Demonstration:** [https://youtu.be/SwarmGraph-Memory-Fabric-Demo](https://youtu.be/SwarmGraph-Memory-Fabric-Demo)  
-*(A full step-by-step timed walkthrough script is provided in [docs/demo_script.md](docs/demo_script.md))*
-
----
-
 ## 1. Why the Graph is Load-Bearing
 
 | Capability | How FalkorDB Does It | Why a Flat Store or Plain Vector DB Fails |
